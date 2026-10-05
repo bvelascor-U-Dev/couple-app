@@ -1,0 +1,62 @@
+<div class="min-h-screen bg-base-200 md:flex">
+  <header
+    class="flex items-center justify-between border-b border-base-300 bg-base-100 px-4 py-3 md:hidden"
+  >
+    <app-brand></app-brand>
+
+    <button
+      class="btn btn-ghost btn-square"
+      type="button"
+      aria-label="Abrir menú"
+      aria-controls="mobile-menu"
+      [attr.aria-expanded]="isMobileMenuOpen()"
+      (click)="openMobileMenu()"
+    >
+      ☰
+    </button>
+  </header>
+
+  @if (isMobileMenuOpen()) {
+    <div class="fixed inset-0 z-50 md:hidden">
+      <!-- Fondo oscuro: pulsarlo cierra el drawer -->
+      <button
+        class="absolute inset-0 bg-black/40"
+        type="button"
+        aria-label="Cerrar menú"
+        (click)="closeMobileMenu()"
+      ></button>
+
+      <!-- Panel lateral móvil -->
+      <aside id="mobile-menu" class="relative flex h-full w-72 flex-col bg-base-100 shadow-xl">
+        <div class="flex items-center justify-between border-b border-base-300 p-4">
+          <app-brand />
+
+          <button
+            class="btn btn-ghost btn-square btn-sm"
+            type="button"
+            aria-label="Cerrar menú"
+            (click)="closeMobileMenu()"
+          >
+            ✕
+          </button>
+        </div>
+
+        <app-navigation-component class="block min-h-0 flex-1" (click)="closeMobileMenu()" />
+      </aside>
+    </div>
+  }
+
+  <aside
+    class="hidden h-screen w-64 shrink-0 flex-col border-r border-base-300 bg-base-100 md:sticky md:top-0 md:flex"
+  >
+    <div class="border-b border-base-300 p-6">
+      <app-brand />
+    </div>
+
+    <app-navigation-component class="block min-h-0 flex-1" />
+  </aside>
+
+  <main class="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+    <router-outlet />
+  </main>
+</div>

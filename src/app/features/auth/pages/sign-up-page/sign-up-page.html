@@ -1,0 +1,119 @@
+<section class="mx-auto flex w-full max-w-7xl justify-center px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+  <div class="w-full max-w-md">
+    <ol class="mb-9 flex items-start justify-center" aria-label="Progreso de registro">
+      <li class="flex flex-1 flex-col items-center text-center text-sm font-medium text-[#7c3b70]">
+        <div class="flex w-full items-center">
+          <span
+            class="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#7c3b70] text-white"
+            aria-current="step"
+          >
+            1
+          </span>
+          <span class="ml-2 h-px w-full bg-base-300" aria-hidden="true"></span>
+        </div>
+        <span class="mt-2 whitespace-nowrap">1. Cuenta</span>
+      </li>
+
+      <li class="flex flex-1 flex-col items-center text-center text-sm font-medium text-base-content/55">
+        <div class="flex w-full items-center">
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-base-300 text-base-content/65">
+            2
+          </span>
+          <span class="ml-2 h-px w-full bg-base-300" aria-hidden="true"></span>
+        </div>
+        <span class="mt-2 whitespace-nowrap">2. Perfil</span>
+      </li>
+
+      <li class="flex flex-1 flex-col items-center text-center text-sm font-medium text-base-content/55">
+        <div class="flex w-full items-center">
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-base-300 text-base-content/65">
+            3
+          </span>
+        </div>
+        <span class="mt-2 whitespace-nowrap">3. Espacio de pareja</span>
+      </li>
+    </ol>
+
+    <form class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-7" novalidate>
+      <header class="mb-7 space-y-2 text-center">
+        <h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">Crea tu cuenta</h1>
+        <p class="text-base text-base-content/65">Empieza con tus datos personales.</p>
+      </header>
+
+      <div class="space-y-5">
+        <div class="space-y-2">
+          <label class="text-sm font-semibold text-base-content" for="full-name">Nombre completo</label>
+          <input
+            class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
+            id="full-name"
+            name="fullName"
+            type="text"
+            autocomplete="name"
+            placeholder="Nombre completo"
+            required
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-semibold text-base-content" for="email">Correo electrónico</label>
+          <input
+            class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="Correo electrónico"
+            required
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-semibold text-base-content" for="password">Contraseña</label>
+          <input
+            class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Contraseña"
+            required
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-semibold text-base-content" for="confirm-password">Confirmar contraseña</label>
+          <input
+            class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
+            id="confirm-password"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Confirmar contraseña"
+            required
+          />
+        </div>
+
+        <label class="label cursor-pointer justify-start gap-3 px-0">
+          <input class="checkbox checkbox-sm border-base-300 [--chkbg:#7c3b70] [--chkfg:white]" name="terms" type="checkbox" required />
+          <span class="label-text text-sm leading-5 text-base-content/75">
+            Acepto los
+            <a class="font-medium text-[#7c3b70] underline underline-offset-4" href="#terms">Términos</a>
+            y la
+            <a class="font-medium text-[#7c3b70] underline underline-offset-4" href="#privacy">Política de privacidad</a>.
+          </span>
+        </label>
+      </div>
+
+      <button class="btn mt-6 w-full border-0 bg-[#7c3b70] text-white shadow-sm hover:bg-[#682f5e]" type="submit">
+        Crear cuenta
+      </button>
+
+      <div class="divider my-4"></div>
+
+      <p class="text-center text-sm text-base-content/70">
+        ¿Ya tienes una cuenta?
+        <a class="font-medium text-[#7c3b70] underline underline-offset-4" routerLink="/auth/sign-in">Iniciar sesión</a>
+      </p>
+    </form>
+  </div>
+</section>
