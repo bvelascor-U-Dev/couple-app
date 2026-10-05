@@ -1,0 +1,89 @@
+<nav
+  class="flex h-full min-h-0 flex-col overflow-y-auto px-3 py-4"
+  aria-label="Navegación principal"
+>
+  <ul class="menu w-full gap-2 p-0 text-base">
+    <li>
+      <a
+        class="flex min-h-12 items-center gap-3 rounded-lg px-4 font-medium text-base-content/80 transition-colors hover:bg-[#7c3b70]/10 hover:text-[#7c3b70]"
+        routerLink="/app/dashboard"
+        routerLinkActive="bg-[#7c3b70] text-white shadow-sm hover:!bg-[#7c3b70] hover:!text-white"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <svg lucideHouse class="size-5 shrink-0" aria-hidden="true" />
+        <span>Home</span>
+      </a>
+    </li>
+    <li>
+      <a
+        class="flex min-h-12 items-center gap-3 rounded-lg px-4 font-medium text-base-content/80 transition-colors hover:bg-[#7c3b70]/10 hover:text-[#7c3b70]"
+        routerLink="/app/finance"
+        routerLinkActive="bg-[#7c3b70] text-white shadow-sm hover:!bg-[#7c3b70] hover:!text-white"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <!-- Your Home SVG -->
+        <svg lucideWallet class="size-5 shrink-0" aria-hidden="true" />
+        <span>Finanzas</span>
+      </a>
+    </li>
+    <li>
+      <a
+        class="flex min-h-12 items-center gap-3 rounded-lg px-4 font-medium text-base-content/80 transition-colors hover:bg-[#7c3b70]/10 hover:text-[#7c3b70]"
+        routerLink="/app/goals-habits"
+        routerLinkActive="bg-[#7c3b70] text-white shadow-sm hover:!bg-[#7c3b70] hover:!text-white"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <!-- Your Home SVG -->
+        <svg lucideGoal class="size-5 shrink-0" aria-hidden="true" />
+        <span>Metas y hábitos</span>
+      </a>
+    </li>
+    <li>
+      <a
+        class="flex min-h-12 items-center gap-3 rounded-lg px-4 font-medium text-base-content/80 transition-colors hover:bg-[#7c3b70]/10 hover:text-[#7c3b70]"
+        routerLink="/app/plans-hobbies"
+        routerLinkActive="bg-[#7c3b70] text-white shadow-sm hover:!bg-[#7c3b70] hover:!text-white"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <!-- Your Home SVG -->
+        <svg lucideCalendarHeart class="size-5 shrink-0" aria-hidden="true" />
+        <span>Planes y hobbies</span>
+      </a>
+    </li>
+    <li>
+      <a
+        class="flex min-h-12 items-center gap-3 rounded-lg px-4 font-medium text-base-content/80 transition-colors hover:bg-[#7c3b70]/10 hover:text-[#7c3b70]"
+        routerLink="/app/projects-trips"
+        routerLinkActive="bg-[#7c3b70] text-white shadow-sm hover:!bg-[#7c3b70] hover:!text-white"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <!-- Your Home SVG -->
+        <svg lucidePlaneTakeoff class="size-5 shrink-0" aria-hidden="true" />
+        <span>Proyectos y viajes</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="mt-auto border-t border-base-300 pt-4">
+    <ul class="menu w-full gap-2 p-0">
+      <li>
+        <a
+          class="flex min-h-12 items-center gap-3 rounded-lg px-4 font-medium text-base-content/80 transition-colors hover:bg-[#7c3b70]/10 hover:text-[#7c3b70]"
+        >
+          <!-- Your Profile SVG -->
+          <svg lucideUserRound class="size-5 shrink-0" aria-hidden="true" />
+          <span>Perfil</span>
+        </a>
+      </li>
+      <li>
+        <a
+          class="flex min-h-12 items-center gap-3 rounded-lg px-4 font-medium text-base-content/80 transition-colors hover:bg-[#7c3b70]/10 hover:text-[#7c3b70]"
+        >
+          <!-- Your Profile SVG -->
+          <svg lucideSettings class="size-5 shrink-0" aria-hidden="true" />
+          <span>Configuración</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
