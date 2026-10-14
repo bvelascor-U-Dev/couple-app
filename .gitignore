@@ -45,3 +45,6 @@ Thumbs.db
 
 # Local working documentation (never commit personal or internal planning notes)
 /docs/PROJECT_FOUNDATION.md
+
+
+/src/environments/environment.development.ts
