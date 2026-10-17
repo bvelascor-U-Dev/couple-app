@@ -1,12 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AuthenticatedLayoutPage } from './authenticated-layout';
+import { AuthService } from '../../../features/auth/services/auth.service';
 
 describe('AuthenticatedLayoutPage', () => {
+  const authServiceMock = {
+    signOut: vi.fn(),
+  };
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AuthenticatedLayoutPage],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]),
+      {
+        provide: AuthService,
+        useValue: authServiceMock,
+      },
+      ],
     }).compileComponents();
   });
 

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { SupabaseClient } from '@supabase/supabase-js';
+import type { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js';
 import { AuthService } from './auth.service';
 import { SUPABASE_CLIENT } from '../../../core/supabase/supabase.provider';
 
@@ -8,6 +8,7 @@ describe('AuthService', () => {
   const signUp = vi.fn();
   const signOut = vi.fn();
   const getSession = vi.fn();
+  const onAuthStateChange = vi.fn();
 
   const supabaseClientMock = {
     auth: {
@@ -15,6 +16,7 @@ describe('AuthService', () => {
       signUp,
       signOut,
       getSession,
+      onAuthStateChange,
     },
   } as unknown as SupabaseClient;
 
@@ -33,6 +35,123 @@ describe('AuthService', () => {
     });
 
     service = TestBed.inject(AuthService);
+  });
+
+  it('should start with an uninitialized session state', () => {
+    expect(service.session()).toBeUndefined();
+    expect(service.isSessionInitialized()).toBe(false);
+    expect(service.isAuthenticated()).toBe(false);
+    expect(service.user()).toBeNull();
+  });
+
+  it('should restore the existing session during initialization', async () => {
+    const session = {
+      access_token: 'test-access-token',
+      refresh_token: 'test-refresh-token',
+      expires_in: 3600,
+      token_type: 'bearer',
+      user: {
+        id: 'user-1',
+      },
+    } as Session;
+
+    getSession.mockResolvedValue({
+      data: {
+        session,
+      },
+      error: null,
+    });
+
+    onAuthStateChange.mockReturnValue({
+      data: {
+        subscription: {
+          unsubscribe: vi.fn(),
+        },
+      },
+    });
+
+    await service.initializeSession();
+
+    expect(getSession).toHaveBeenCalledTimes(1);
+    expect(onAuthStateChange).toHaveBeenCalledTimes(1);
+    expect(service.session()).toBe(session);
+    expect(service.isSessionInitialized()).toBe(true);
+    expect(service.isAuthenticated()).toBe(true);
+    expect(service.user()).toBe(session.user);
+  });
+
+  it('should update the session when the authentication state changes', async () => {
+    let authStateChangeCallback:
+      ((event: AuthChangeEvent, session: Session | null) => void) | undefined;
+
+    onAuthStateChange.mockImplementation((callback) => {
+      authStateChangeCallback = callback;
+
+      return {
+        data: {
+          subscription: {
+            unsubscribe: vi.fn(),
+          },
+        },
+      };
+    });
+
+    getSession.mockResolvedValue({
+      data: {
+        session: null,
+      },
+      error: null,
+    });
+
+    await service.initializeSession();
+
+    expect(service.session()).toBeNull();
+    expect(service.isAuthenticated()).toBe(false);
+
+    const session = {
+      access_token: 'new-access-token',
+      refresh_token: 'new-refresh-token',
+      expires_in: 3600,
+      token_type: 'bearer',
+      user: {
+        id: 'user-2',
+      },
+    } as Session;
+
+    authStateChangeCallback?.('SIGNED_IN', session);
+
+    expect(service.session()).toBe(session);
+    expect(service.isAuthenticated()).toBe(true);
+    expect(service.user()).toBe(session.user);
+
+    authStateChangeCallback?.('SIGNED_OUT', null);
+
+    expect(service.session()).toBeNull();
+    expect(service.isAuthenticated()).toBe(false);
+    expect(service.user()).toBeNull();
+  });
+
+  it('should initialize the session only once', async () => {
+    getSession.mockResolvedValue({
+      data: {
+        session: null,
+      },
+      error: null,
+    });
+
+    onAuthStateChange.mockReturnValue({
+      data: {
+        subscription: {
+          unsubscribe: vi.fn(),
+        },
+      },
+    });
+
+    await service.initializeSession();
+    await service.initializeSession();
+
+    expect(getSession).toHaveBeenCalledTimes(1);
+    expect(onAuthStateChange).toHaveBeenCalledTimes(1);
   });
 
   it('should sign in using a normalized email', async () => {

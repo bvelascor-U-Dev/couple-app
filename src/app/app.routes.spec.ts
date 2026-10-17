@@ -1,24 +1,35 @@
-import {TestBed} from '@angular/core/testing';
-import {provideRouter, Router} from '@angular/router';
-import {RouterTestingHarness} from '@angular/router/testing';
-import {routes} from './app.routes';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { routes } from './app.routes';
+import { AuthService } from './features/auth/services/auth.service';
 
-describe ('application routes', () => {
-    let harness: RouterTestingHarness;
-    let router: Router;
+describe('application routes', () => {
+  let harness: RouterTestingHarness;
+  let router: Router;
 
-    beforeEach(async () => {
-        TestBed.configureTestingModule({
-            providers: [provideRouter(routes)],
-        });
+  const authServiceMock = {
+    isAuthenticated: vi.fn(() => false),
+    signIn: vi.fn(),
+  };
 
-        router = TestBed.inject(Router);
-        harness = await RouterTestingHarness.create();
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      providers: [provideRouter(routes),
+        {
+        provide: AuthService,
+        useValue: authServiceMock,
+      },
+      ],
     });
 
-    it('redirect the root URL to the sign-in page', async () => {
-        await harness.navigateByUrl('/');
+    router = TestBed.inject(Router);
+    harness = await RouterTestingHarness.create();
+  });
 
-        expect(router.url).toBe('/auth/sign-in');
-    });
-})
+  it('redirect the root URL to the sign-in page', async () => {
+    await harness.navigateByUrl('/');
+
+    expect(router.url).toBe('/auth/sign-in');
+  });
+});
