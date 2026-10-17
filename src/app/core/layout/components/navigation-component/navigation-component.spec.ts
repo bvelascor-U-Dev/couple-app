@@ -1,12 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { NavigationComponent } from './navigation-component';
+import { AuthService } from '../../../../features/auth/services/auth.service';
 
 describe('NavigationComponent', () => {
+  const authServiceMock = {
+    signOut: vi.fn(),
+  };
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NavigationComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]),
+      {
+        provide: AuthService,
+        useValue: authServiceMock,
+      },
+      ],
     }).compileComponents();
   });
 
