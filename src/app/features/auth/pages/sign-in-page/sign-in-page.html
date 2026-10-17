@@ -1,5 +1,5 @@
 <section class="flex min-h-full items-center justify-center px-4 py-12 sm:px-6">
-  <form class="w-full max-w-md space-y-6" novalidate>
+  <form class="w-full max-w-md space-y-6" [formGroup]="signInForm" (ngSubmit)="onSubmit()" novalidate>
     <header class="space-y-2 text-center">
       <h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">
         Inicia sesión
@@ -20,10 +20,22 @@
           class="input w-full border-base-300 bg-base-100 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
           type="email"
           id="email"
-          name="email"
+          formControlName="email"
           autocomplete="email"
           required
         />
+
+        @if (signInForm.controls.email.touched) {
+          @if (signInForm.controls.email.hasError('required')) {
+            <p class="text-sm text-error">
+              El correo electrónico es obligatorio.
+            </p>
+          } @else if (signInForm.controls.email.hasError('email')) {
+            <p class="text-sm text-error">
+              Ingresa un correo electrónico válido.
+            </p>
+          }
+        }
       </div>
 
       <div class="space-y-2">
@@ -35,10 +47,22 @@
           class="input w-full border-base-300 bg-base-100 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
           type="password"
           id="password"
-          name="password"
+          formControlName="password"
           autocomplete="current-password"
           required
         />
+        @if (
+          signInForm.controls.password.touched &&
+          signInForm.controls.password.hasError('required')
+        ) {
+          <p class="text-sm text-error">
+            La contraseña es obligatoria.
+          </p>
+        } @else if (signInForm.controls.password.touched && signInForm.controls.password.hasError('minlength')) {
+          <p class="text-sm text-error">
+            La contraseña debe tener minimo 8 caracteres.
+          </p>
+        }
       </div>
 
       <div class="flex justify-end">
@@ -49,11 +73,22 @@
       </div>
     </div>
 
+    @if (errorMessage()) {
+    <div class="alert alert-error" role="alert">
+      <span>{{ errorMessage() }}</span>
+    </div>
+}
     <button
       class="btn w-full border-0 bg-[#7c3b70] text-white shadow-sm hover:bg-[#682f5e]"
       type="submit"
+      [disabled]="isLoading()"
     >
-      Iniciar sesión
+      @if (isLoading()) {
+        <span class="loading loading-spinner loading-sm"></span>
+        Iniciando sesión...
+      } @else {
+        Iniciar sesión
+      }
     </button>
 
     <div class="divider text-sm text-base-content/50">o</div>

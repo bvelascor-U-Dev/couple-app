@@ -34,11 +34,18 @@
       </li>
     </ol>
 
-    <form class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-7" novalidate>
+    <form class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-7" [formGroup]="signUpForm" (ngSubmit)="onSubmit()" novalidate>
       <header class="mb-7 space-y-2 text-center">
         <h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">Crea tu cuenta</h1>
         <p class="text-base text-base-content/65">Empieza con tus datos personales.</p>
       </header>
+
+      @if (successMessage()) {
+        <div class="alert alert-success mb-6" role="status">
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+
 
       <div class="space-y-5">
         <div class="space-y-2">
@@ -46,12 +53,23 @@
           <input
             class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
             id="full-name"
-            name="fullName"
+            formControlName="name"
             type="text"
             autocomplete="name"
             placeholder="Nombre completo"
             required
           />
+          @if (signUpForm.controls.name.touched) {
+            @if (signUpForm.controls.name.hasError('required')) {
+              <p class="text-sm text-error">
+                El nombre completo es obligatorio.
+              </p>
+            } @else if (signUpForm.controls.name.hasError('pattern')) {
+              <p class="text-sm text-error">
+                Ingresa al menos dos nombres o un nombre y apellido.
+              </p>
+            }
+          }
         </div>
 
         <div class="space-y-2">
@@ -59,12 +77,23 @@
           <input
             class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
             id="email"
-            name="email"
+            formControlName="email"
             type="email"
             autocomplete="email"
             placeholder="Correo electrónico"
             required
           />
+          @if (signUpForm.controls.email.touched) {
+            @if (signUpForm.controls.email.hasError('required')) {
+              <p class="text-sm text-error">
+                El correo electrónico es obligatorio.
+              </p>
+            } @else if (signUpForm.controls.email.hasError('email')) {
+              <p class="text-sm text-error">
+                Ingresa un correo electrónico válido.
+              </p>
+            }
+          }
         </div>
 
         <div class="space-y-2">
@@ -72,12 +101,27 @@
           <input
             class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
             id="password"
-            name="password"
+            formControlName="password"
             type="password"
             autocomplete="new-password"
             placeholder="Contraseña"
             required
           />
+          @if (signUpForm.controls.password.touched) {
+            @if (signUpForm.controls.password.hasError('required')) {
+              <p class="text-sm text-error">
+                La contraseña es obligatoria.
+              </p>
+            } @else if (signUpForm.controls.password.hasError('minlength')) {
+              <p class="text-sm text-error">
+                La contraseña debe tener al menos 8 caracteres.
+              </p>
+            } @else if (signUpForm.controls.password.hasError('pattern')) {
+              <p class="text-sm text-error">
+                Incluye al menos una mayúscula y un carácter especial.
+              </p>
+            }
+          }
         </div>
 
         <div class="space-y-2">
@@ -85,22 +129,45 @@
           <input
             class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
             id="confirm-password"
-            name="confirmPassword"
+            formControlName="confirmPassword"
             type="password"
             autocomplete="new-password"
             placeholder="Confirmar contraseña"
             required
           />
+          @if (
+            signUpForm.controls.confirmPassword.touched &&
+            signUpForm.controls.confirmPassword.hasError('required')
+          ){
+            <p class="text-sm text-error">
+              Confirma tu contraseña.
+            </p>
+          } @else if (
+            signUpForm.controls.confirmPassword.touched &&
+            signUpForm.hasError('passwordMismatch') )
+            {
+              <p class="text-sm text-error">
+                Las contraseñas no coinciden.
+              </p>
+            }          
         </div>
 
         <label class="label cursor-pointer justify-start gap-3 px-0">
-          <input class="checkbox checkbox-sm border-base-300 [--chkbg:#7c3b70] [--chkfg:white]" name="terms" type="checkbox" required />
+          <input class="checkbox checkbox-sm border-base-300 [--chkbg:#7c3b70] [--chkfg:white]" name="terms" type="checkbox" formControlName="terms" required />
           <span class="label-text text-sm leading-5 text-base-content/75">
             Acepto los
             <a class="font-medium text-[#7c3b70] underline underline-offset-4" href="#terms">Términos</a>
             y la
             <a class="font-medium text-[#7c3b70] underline underline-offset-4" href="#privacy">Política de privacidad</a>.
           </span>
+          @if (
+            signUpForm.controls.terms.touched &&
+            signUpForm.controls.terms.hasError('required')
+          ) {
+            <p class="text-sm text-error">
+              Debes aceptar los términos y la política de privacidad.
+            </p>
+          }
         </label>
       </div>
 
