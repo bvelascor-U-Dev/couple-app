@@ -1,9 +1,26 @@
-import { Service, inject } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
 import { SUPABASE_CLIENT } from '../../../core/supabase/supabase.provider';
+import type { Session } from '@supabase/supabase-js';
 
 @Service()
 export class AuthService {
   private readonly supabase = inject(SUPABASE_CLIENT);
+  private readonly _sessionState = signal<Session | null | undefined>(undefined);
+  private sessionInitializationStarted = false;
+
+  public readonly session = this._sessionState.asReadonly();
+
+  public readonly user = computed(() => {
+    return this.session()?.user ?? null;
+  });
+
+  public readonly isAuthenticated = computed(() => {
+    return this.session() !== null && this.session() !== undefined;
+  });
+
+  public readonly isSessionInitialized = computed(() => {
+    return this.session() !== undefined;
+  });
 
   public async signIn(email: string, password: string) {
     const normalizedEmail = email.trim().toLowerCase();
@@ -71,5 +88,24 @@ export class AuthService {
     }
 
     return data.session;
+  }
+
+  public async initializeSession(): Promise<void> {
+    if (this.sessionInitializationStarted) {
+      return;
+    }
+
+    this.sessionInitializationStarted = true;
+
+    this.supabase.auth.onAuthStateChange((_event, session) => {
+      this._sessionState.set(session);
+    });
+
+    try {
+      const session = await this.getSession();
+      this._sessionState.set(session);
+    } catch {
+      this._sessionState.set(null);
+    }
   }
 }
