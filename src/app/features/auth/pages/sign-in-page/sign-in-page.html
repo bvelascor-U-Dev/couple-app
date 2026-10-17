@@ -1,13 +1,14 @@
 <section class="flex min-h-full items-center justify-center px-4 py-12 sm:px-6">
-  <form class="w-full max-w-md space-y-6" [formGroup]="signInForm" (ngSubmit)="onSubmit()" novalidate>
+  <form
+    class="w-full max-w-md space-y-6"
+    [formGroup]="signInForm"
+    (ngSubmit)="onSubmit()"
+    novalidate
+  >
     <header class="space-y-2 text-center">
-      <h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">
-        Inicia sesión
-      </h1>
+      <h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">Inicia sesión</h1>
 
-      <p class="text-base text-base-content/65 sm:text-lg">
-        Accede a tu espacio de pareja.
-      </p>
+      <p class="text-base text-base-content/65 sm:text-lg">Accede a tu espacio de pareja.</p>
     </header>
 
     <div class="space-y-5">
@@ -27,21 +28,15 @@
 
         @if (signInForm.controls.email.touched) {
           @if (signInForm.controls.email.hasError('required')) {
-            <p class="text-sm text-error">
-              El correo electrónico es obligatorio.
-            </p>
+            <p class="text-sm text-error">El correo electrónico es obligatorio.</p>
           } @else if (signInForm.controls.email.hasError('email')) {
-            <p class="text-sm text-error">
-              Ingresa un correo electrónico válido.
-            </p>
+            <p class="text-sm text-error">Ingresa un correo electrónico válido.</p>
           }
         }
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-semibold text-base-content" for="password">
-          Contraseña
-        </label>
+        <label class="text-sm font-semibold text-base-content" for="password"> Contraseña </label>
 
         <input
           class="input w-full border-base-300 bg-base-100 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
@@ -52,16 +47,13 @@
           required
         />
         @if (
-          signInForm.controls.password.touched &&
-          signInForm.controls.password.hasError('required')
+          signInForm.controls.password.touched && signInForm.controls.password.hasError('required')
         ) {
-          <p class="text-sm text-error">
-            La contraseña es obligatoria.
-          </p>
-        } @else if (signInForm.controls.password.touched && signInForm.controls.password.hasError('minlength')) {
-          <p class="text-sm text-error">
-            La contraseña debe tener minimo 8 caracteres.
-          </p>
+          <p class="text-sm text-error">La contraseña es obligatoria.</p>
+        } @else if (
+          signInForm.controls.password.touched && signInForm.controls.password.hasError('minlength')
+        ) {
+          <p class="text-sm text-error">La contraseña debe tener minimo 8 caracteres.</p>
         }
       </div>
 
@@ -74,10 +66,10 @@
     </div>
 
     @if (errorMessage()) {
-    <div class="alert alert-error" role="alert">
-      <span>{{ errorMessage() }}</span>
-    </div>
-}
+      <div class="alert alert-error" role="alert">
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
     <button
       class="btn w-full border-0 bg-[#7c3b70] text-white shadow-sm hover:bg-[#682f5e]"
       type="submit"
