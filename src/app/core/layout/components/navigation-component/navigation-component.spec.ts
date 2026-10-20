@@ -25,7 +25,7 @@ describe('NavigationComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render links to the main application areas', () => {
+  it('should render links to the application areas', () => {
     const fixture = TestBed.createComponent(NavigationComponent);
     const compiled = fixture.nativeElement as HTMLElement;
 
@@ -41,6 +41,7 @@ describe('NavigationComponent', () => {
       '/app/goals-habits',
       '/app/plans-hobbies',
       '/app/projects-trips',
+      '/app/profile',
     ]);
   });
 });

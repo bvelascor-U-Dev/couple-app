@@ -1,0 +1,106 @@
+<section class="mx-auto w-full max-w-2xl">
+  <header class="mb-8 space-y-2">
+    <p class="text-sm font-medium text-[#7c3b70]">Cuenta</p>
+    <h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">Perfil</h1>
+    <p class="text-base text-base-content/65">
+      Administra la información básica que se muestra en Couple App.
+    </p>
+  </header>
+
+  @if (isLoading()) {
+    <div
+      class="flex min-h-48 items-center justify-center gap-3 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm"
+      role="status"
+    >
+      <span class="loading loading-spinner loading-md text-[#7c3b70]" aria-hidden="true"></span>
+      <span class="text-base-content/70">Cargando tu perfil...</span>
+    </div>
+  } @else if (loadErrorMessage()) {
+    <div class="alert alert-error" role="alert">
+      <span>{{ loadErrorMessage() }}</span>
+    </div>
+  } @else {
+    <form
+      class="rounded-box border border-base-300 bg-base-100 shadow-sm"
+      [formGroup]="profileForm"
+      (ngSubmit)="onSubmit()"
+      novalidate
+    >
+      <div class="border-b border-base-300 p-6 sm:p-7">
+        <h2 class="text-xl font-semibold text-base-content">Información personal</h2>
+        <p class="mt-1 text-sm text-base-content/65">
+          Este nombre se mostrará en tu espacio compartido.
+        </p>
+      </div>
+
+      <div class="space-y-5 p-6 sm:p-7">
+        @if (saveErrorMessage()) {
+          <div class="alert alert-error" role="alert">
+            <span>{{ saveErrorMessage() }}</span>
+          </div>
+        }
+
+        @if (successMessage()) {
+          <div class="alert alert-success" role="status">
+            <span>{{ successMessage() }}</span>
+          </div>
+        }
+
+        <div class="space-y-2">
+          <label class="text-sm font-semibold text-base-content" for="display-name">
+            Nombre completo
+          </label>
+
+          <input
+            class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
+            id="display-name"
+            formControlName="displayName"
+            type="text"
+            autocomplete="name"
+            placeholder="Nombre completo"
+            [disabled]="isSaving()"
+            [attr.aria-invalid]="
+              profileForm.controls.displayName.invalid && profileForm.controls.displayName.touched
+            "
+            [attr.aria-describedby]="
+              profileForm.controls.displayName.invalid && profileForm.controls.displayName.touched
+                ? 'display-name-error'
+                : null
+            "
+            required
+          />
+
+          @if (profileForm.controls.displayName.touched) {
+            @if (profileForm.controls.displayName.hasError('required')) {
+              <p id="display-name-error" class="text-sm text-error">
+                El nombre completo es obligatorio.
+              </p>
+            } @else if (profileForm.controls.displayName.hasError('pattern')) {
+              <p id="display-name-error" class="text-sm text-error">
+                Ingresa al menos dos nombres o un nombre y apellido.
+              </p>
+            }
+          }
+        </div>
+      </div>
+
+      <div
+        class="flex flex-col-reverse gap-3 border-t border-base-300 p-6 sm:flex-row sm:justify-end sm:p-7"
+      >
+        <button
+          class="btn border-0 bg-[#7c3b70] text-white hover:bg-[#682f5e] disabled:bg-[#7c3b70]/60"
+          type="submit"
+          [disabled]="isSaving()"
+          [attr.aria-busy]="isSaving()"
+        >
+          @if (isSaving()) {
+            <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+            Guardando cambios...
+          } @else {
+            Guardar cambios
+          }
+        </button>
+      </div>
+    </form>
+  }
+</section>

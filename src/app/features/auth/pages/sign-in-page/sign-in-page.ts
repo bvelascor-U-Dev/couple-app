@@ -46,7 +46,7 @@ export class SignInPage {
       await this.router.navigateByUrl('/app/dashboard');
     } catch {
       this.errorMessage.set(
-        'sign in had an error. Please verify your credentials and retry it please',
+        'No fue posible iniciar sesión. Verifica tus credenciales e inténtalo nuevamente.',
       );
     } finally {
       this.isLoading.set(false);

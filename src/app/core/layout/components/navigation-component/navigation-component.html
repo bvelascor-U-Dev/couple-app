@@ -74,6 +74,9 @@
       <li>
         <a
           class="flex min-h-12 items-center gap-3 rounded-lg px-4 font-medium text-base-content/80 transition-colors hover:bg-[#7c3b70]/10 hover:text-[#7c3b70]"
+          routerLink="/app/profile"
+          routerLinkActive="bg-[#7c3b70] text-white shadow-sm hover:!bg-[#7c3b70] hover:!text-white"
+          [routerLinkActiveOptions]="{ exact: true }"
           (click)="navigationRequested.emit()"
         >
           <svg lucideUserRound class="size-5 shrink-0" aria-hidden="true" />

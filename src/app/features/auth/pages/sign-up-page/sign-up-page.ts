@@ -9,6 +9,7 @@ import {
   ReactiveFormsModule,
   ValidationErrors,
 } from '@angular/forms';
+import { FULL_NAME_PATTERN } from '../../../../shared/validators/full-name.validator';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password')?.value;
@@ -36,7 +37,7 @@ export class SignUpPage {
         nonNullable: true,
         validators: [
           Validators.required,
-          Validators.pattern(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,}(?:\s+[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{2,})+$/),
+          Validators.pattern(FULL_NAME_PATTERN),
         ],
       }),
       email: new FormControl('', {
@@ -90,7 +91,7 @@ export class SignUpPage {
       await this.router.navigateByUrl('/app/dashboard');
     } catch {
       this.errorMessage.set(
-        'Sign up was impossible. Please verify your information and try again.',
+        'No fue posible crear tu cuenta. Verifica la información e inténtalo nuevamente.',
       );
     } finally {
       this.isLoading.set(false);
