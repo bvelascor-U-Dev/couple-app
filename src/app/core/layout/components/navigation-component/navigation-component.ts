@@ -48,7 +48,7 @@ export class NavigationComponent {
       await this.authService.signOut();
       await this.router.navigateByUrl('/auth/sign-in');
     } catch {
-      this.errorMessage.set('The signOut fail, please try it later');
+      this.errorMessage.set('No fue posible cerrar sesión. Inténtalo nuevamente.');
     } finally {
       this.isLoading.set(false);
     }
