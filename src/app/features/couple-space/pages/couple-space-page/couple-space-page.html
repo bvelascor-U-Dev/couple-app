@@ -1,0 +1,275 @@
+<section class="mx-auto w-full max-w-4xl">
+  <header class="mb-8 space-y-2">
+    <p class="text-sm font-medium text-[#7c3b70]">Espacio compartido</p>
+
+    <h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">
+      Espacio de pareja
+    </h1>
+
+    <p class="text-base text-base-content/65">
+      Crea un espacio con tu pareja o únete mediante una invitación.
+    </p>
+  </header>
+
+  @if (isLoading()) {
+    <div
+      class="flex min-h-48 items-center justify-center gap-3 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm"
+      role="status"
+    >
+      <span class="loading loading-spinner loading-md text-[#7c3b70]" aria-hidden="true"></span>
+
+      <span class="text-base-content/70"> Cargando tu espacio de pareja... </span>
+    </div>
+  } @else if (loadErrorMessage()) {
+    <div class="alert alert-error" role="alert">
+      <span>{{ loadErrorMessage() }}</span>
+    </div>
+  } @else {
+    <div class="mb-6 space-y-4">
+      @if (actionErrorMessage()) {
+        <div class="alert alert-error" role="alert">
+          <span>{{ actionErrorMessage() }}</span>
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div class="alert alert-success" role="status">
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+    </div>
+
+    @if (coupleSpaceOverview(); as overview) {
+      <article class="rounded-box border border-base-300 bg-base-100 shadow-sm">
+        <div class="border-b border-base-300 p-6 sm:p-7">
+          <p class="text-sm font-medium text-[#7c3b70]">Tu espacio</p>
+
+          <h2 class="mt-1 text-2xl font-semibold text-base-content">
+            {{ overview.coupleSpace.name }}
+          </h2>
+
+          <p class="mt-2 text-sm text-base-content/65">
+            Comparte aquí tus finanzas, metas, planes y proyectos.
+          </p>
+        </div>
+
+        <div class="grid gap-4 p-6 sm:grid-cols-2 sm:p-7">
+          <div class="rounded-box bg-base-200 p-4">
+            <p class="text-sm text-base-content/60">Tu rol</p>
+
+            <p class="mt-1 font-semibold text-base-content">
+              {{ overview.membership.role === 'owner' ? 'Propietario' : 'Miembro' }}
+            </p>
+          </div>
+
+          <div class="rounded-box bg-base-200 p-4">
+            <p class="text-sm text-base-content/60">Miembros</p>
+
+            <p class="mt-1 font-semibold text-base-content">{{ overview.members.length }} de 2</p>
+          </div>
+        </div>
+        <div class="border-t border-base-300 p-6 sm:p-7">
+          <h3 class="text-lg font-semibold text-base-content">Miembros</h3>
+
+          <ul class="mt-4 space-y-3">
+            @for (member of overview.members; track member.userId) {
+              <li
+                class="flex items-center justify-between gap-4 rounded-box p-4 transition-colors"
+                [class]="
+                  member.userId === overview.membership.userId
+                    ? 'bg-[#7c3b70]/10 ring-1 ring-inset ring-[#7c3b70]/20'
+                    : 'bg-base-200'
+                "
+              >
+                <div>
+                  <p class="font-semibold text-base-content">
+                    {{ member.displayName }}
+
+                    @if (member.userId === overview.membership.userId) {
+                      <span class="font-normal text-base-content/60"> (Tú) </span>
+                    }
+                  </p>
+
+                  <p class="mt-1 text-sm text-base-content/60">Miembro del espacio</p>
+                </div>
+
+                <span
+                  class="badge border-0 font-medium"
+                  [class]="
+                    member.role === 'owner'
+                      ? 'bg-[#7c3b70] text-white'
+                      : 'bg-[#7c3b70]/15 text-[#7c3b70]'
+                  "
+                >
+                  {{ member.role === 'owner' ? 'Propietario' : 'Miembro' }}
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+
+        @if (overview.membership.role === 'owner' && overview.members.length < 2) {
+          <div class="border-t border-base-300 p-6 sm:p-7">
+            <h3 class="text-lg font-semibold text-base-content">Invita a tu pareja</h3>
+
+            <p class="mt-1 text-sm text-base-content/65">
+              Genera un código y compártelo únicamente con la persona que quieres añadir.
+            </p>
+
+            <button
+              class="btn mt-5 border-0 bg-[#7c3b70] text-white hover:bg-[#682f5e]"
+              type="button"
+              [disabled]="isCreatingInvitation()"
+              [attr.aria-busy]="isCreatingInvitation()"
+              (click)="onCreateInvitation()"
+            >
+              @if (isCreatingInvitation()) {
+                <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+                Generando invitación...
+              } @else {
+                Generar invitación
+              }
+            </button>
+
+            @if (invitationToken()) {
+              <div class="mt-5 rounded-box border border-base-300 bg-base-200 p-4">
+                <p class="text-sm font-medium text-base-content">Código de invitación</p>
+
+                <code class="mt-2 block break-all text-sm text-[#7c3b70]">
+                  {{ invitationToken() }}
+                </code>
+
+                <p class="mt-2 text-xs text-base-content/60">
+                  Esta invitación estará disponible durante siete días.
+                </p>
+              </div>
+            }
+          </div>
+        } @else if (overview.members.length >= 2) {
+          <div class="border-t border-base-300 p-6 sm:p-7">
+            <p class="text-sm text-base-content/65">Este espacio ya tiene sus dos miembros.</p>
+          </div>
+        }
+      </article>
+    } @else {
+      <div class="grid gap-6 lg:grid-cols-2">
+        <form
+          class="rounded-box border border-base-300 bg-base-100 shadow-sm"
+          [formGroup]="createSpaceForm"
+          (ngSubmit)="onCreateSpace()"
+          novalidate
+        >
+          <div class="border-b border-base-300 p-6">
+            <h2 class="text-xl font-semibold text-base-content">Crear un espacio</h2>
+
+            <p class="mt-1 text-sm text-base-content/65">
+              Serás el propietario y podrás invitar a tu pareja.
+            </p>
+          </div>
+
+          <div class="space-y-5 p-6">
+            <div class="space-y-2">
+              <label class="text-sm font-semibold text-base-content" for="couple-space-name">
+                Nombre del espacio
+              </label>
+
+              <input
+                class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
+                id="couple-space-name"
+                formControlName="name"
+                type="text"
+                placeholder="Por ejemplo: Ana y Bryan"
+                [attr.aria-invalid]="
+                  createSpaceForm.controls.name.invalid && createSpaceForm.controls.name.touched
+                "
+                required
+              />
+
+              @if (createSpaceForm.controls.name.touched) {
+                @if (createSpaceForm.controls.name.hasError('required')) {
+                  <p class="text-sm text-error">El nombre del espacio es obligatorio.</p>
+                } @else if (createSpaceForm.controls.name.hasError('minlength')) {
+                  <p class="text-sm text-error">El nombre debe tener al menos 2 caracteres.</p>
+                } @else if (createSpaceForm.controls.name.hasError('maxlength')) {
+                  <p class="text-sm text-error">El nombre no puede superar los 80 caracteres.</p>
+                }
+              }
+            </div>
+
+            <button
+              class="btn w-full border-0 bg-[#7c3b70] text-white hover:bg-[#682f5e]"
+              type="submit"
+              [disabled]="isCreating()"
+              [attr.aria-busy]="isCreating()"
+            >
+              @if (isCreating()) {
+                <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+                Creando espacio...
+              } @else {
+                Crear espacio
+              }
+            </button>
+          </div>
+        </form>
+
+        <form
+          class="rounded-box border border-base-300 bg-base-100 shadow-sm"
+          [formGroup]="joinSpaceForm"
+          (ngSubmit)="onJoinSpace()"
+          novalidate
+        >
+          <div class="border-b border-base-300 p-6">
+            <h2 class="text-xl font-semibold text-base-content">Unirme a un espacio</h2>
+
+            <p class="mt-1 text-sm text-base-content/65">
+              Introduce el código que recibiste de tu pareja.
+            </p>
+          </div>
+
+          <div class="space-y-5 p-6">
+            <div class="space-y-2">
+              <label class="text-sm font-semibold text-base-content" for="invitation-token">
+                Código de invitación
+              </label>
+
+              <input
+                class="input w-full border-base-300 bg-base-100 placeholder:text-base-content/40 focus:border-[#7c3b70] focus:outline-[#7c3b70]"
+                id="invitation-token"
+                formControlName="invitationToken"
+                type="text"
+                autocomplete="off"
+                placeholder="Pega aquí el código"
+                [attr.aria-invalid]="
+                  joinSpaceForm.controls.invitationToken.invalid &&
+                  joinSpaceForm.controls.invitationToken.touched
+                "
+                required
+              />
+
+              @if (
+                joinSpaceForm.controls.invitationToken.touched &&
+                joinSpaceForm.controls.invitationToken.hasError('required')
+              ) {
+                <p class="text-sm text-error">El código de invitación es obligatorio.</p>
+              }
+            </div>
+
+            <button
+              class="btn w-full border border-[#7c3b70] bg-transparent text-[#7c3b70] hover:bg-[#7c3b70] hover:text-white"
+              type="submit"
+              [disabled]="isJoining()"
+              [attr.aria-busy]="isJoining()"
+            >
+              @if (isJoining()) {
+                <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+                Uniéndome...
+              } @else {
+                Unirme al espacio
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  }
+</section>

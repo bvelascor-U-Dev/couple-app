@@ -40,7 +40,7 @@ export class ProfilePage implements OnInit {
       displayName: profile.displayName,
     })
     } catch {
-      this.loadErrorMessage.set('No fue posible cargar tu perfil. Recarga la página e intentalo nuevamente');
+      this.loadErrorMessage.set('No fue posible cargar tu perfil. Recarga la página e inténtalo nuevamente');
     } finally {
       this.isLoading.set(false);
     }
@@ -80,8 +80,4 @@ export class ProfilePage implements OnInit {
     }
 
   }
- 
-
-
-
 }
