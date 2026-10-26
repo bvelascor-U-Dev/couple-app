@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { CoupleSpaceInvitation } from '../../models/couple-space-invitation.model';
 import type { CoupleSpaceOverview } from '../../models/couple-space-overview.model';
 import { CoupleSpaceService } from '../../services/couple-space.service';
 import { CoupleSpacePage } from './couple-space-page';
@@ -7,12 +8,14 @@ describe('CoupleSpacePage', () => {
   const getCurrentCoupleSpace = vi.fn();
   const createCoupleSpace = vi.fn();
   const createCoupleSpaceInvitation = vi.fn();
+  const getCurrentInvitation = vi.fn();
   const acceptCoupleSpaceInvitation = vi.fn();
 
   const coupleSpaceServiceMock = {
     getCurrentCoupleSpace,
     createCoupleSpace,
     createCoupleSpaceInvitation,
+    getCurrentInvitation,
     acceptCoupleSpaceInvitation,
   };
 
@@ -46,12 +49,22 @@ describe('CoupleSpacePage', () => {
     ],
   };
 
+  const pendingInvitation: CoupleSpaceInvitation = {
+    invitationId: 'invitation-1',
+    token: 'invitation-token',
+    status: 'pending',
+    expiresAt: '2026-11-02T12:00:00.000Z',
+    acceptedAt: null,
+    createdAt: '2026-10-26T12:00:00.000Z',
+  };
+
   let component: CoupleSpacePage;
   let fixture: ComponentFixture<CoupleSpacePage>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     getCurrentCoupleSpace.mockResolvedValue(null);
+    getCurrentInvitation.mockResolvedValue(null);
 
     await TestBed.configureTestingModule({
       imports: [CoupleSpacePage],
@@ -71,7 +84,7 @@ describe('CoupleSpacePage', () => {
     getCurrentCoupleSpace.mockResolvedValue(overview);
 
     fixture.detectChanges();
-    await fixture.whenStable();
+    await vi.waitFor(() => expect(component.isLoading()).toBe(false));
     fixture.detectChanges();
 
     const content = (fixture.nativeElement as HTMLElement).textContent;
@@ -101,6 +114,7 @@ describe('CoupleSpacePage', () => {
     };
     createCoupleSpace.mockResolvedValue(ownerOverview);
     createCoupleSpaceInvitation.mockResolvedValue('invitation-token');
+    getCurrentInvitation.mockResolvedValue(pendingInvitation);
     component.createSpaceForm.setValue({ name: 'Sofia y Daniel' });
 
     await component.onCreateSpace();
@@ -109,7 +123,9 @@ describe('CoupleSpacePage', () => {
     expect(createCoupleSpace).toHaveBeenCalledWith('Sofia y Daniel');
     expect(component.coupleSpaceOverview()).toEqual(ownerOverview);
     expect(createCoupleSpaceInvitation).toHaveBeenCalledTimes(1);
-    expect(component.invitationToken()).toBe('invitation-token');
+    expect(getCurrentInvitation).toHaveBeenCalledTimes(1);
+    expect(component.currentInvitation()).toEqual(pendingInvitation);
+    expect(component.successMessage()).toBe('La invitación está lista para compartir.');
     expect(component.isCreating()).toBe(false);
     expect(component.isCreatingInvitation()).toBe(false);
   });

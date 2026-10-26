@@ -5,12 +5,22 @@ import { CoupleSpaceOverview } from '../models/couple-space-overview.model';
 import { CoupleSpace } from '../models/couple-space.model';
 import { CoupleSpaceMembership } from '../models/couple-space-membership.model';
 import { CoupleSpaceMember } from '../models/couple-space-member.model';
+import { CoupleSpaceInvitation } from '../models/couple-space-invitation.model';
 
 interface CoupleSpaceMemberRow {
   user_id: string;
   display_name: string;
   role: CoupleSpaceMember['role'];
   joined_at: string;
+}
+
+interface CoupleSpaceInvitationRow {
+  invitation_id: string;
+  token: string;
+  status: CoupleSpaceInvitation['status'];
+  expires_at: string;
+  accepted_at: string | null;
+  created_at: string;
 }
 
 @Service()
@@ -175,6 +185,32 @@ export class CoupleSpaceService {
     }
 
     return overview;
+  }
+
+  public async getCurrentInvitation(): Promise<CoupleSpaceInvitation | null> {
+    this.getAuthenticatedUserId();
+
+    const { data, error } = await this.supabase.rpc('get_current_couple_space_invitation');
+
+    if (error) {
+      throw error;
+    }
+
+    const invitationRows = (data ?? []) as CoupleSpaceInvitationRow[];
+    const invitation = invitationRows[0];
+
+    if (!invitation) {
+      return null;
+    }
+
+    return {
+      invitationId: invitation.invitation_id,
+      token: invitation.token,
+      status: invitation.status,
+      expiresAt: invitation.expires_at,
+      acceptedAt: invitation.accepted_at,
+      createdAt: invitation.created_at,
+    };
   }
 
   private getAuthenticatedUserId(): string {

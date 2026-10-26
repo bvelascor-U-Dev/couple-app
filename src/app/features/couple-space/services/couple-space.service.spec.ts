@@ -177,4 +177,32 @@ describe('CoupleSpaceService', () => {
     });
     expect(getCurrentCoupleSpace).toHaveBeenCalledTimes(1);
   });
+
+  it('should retrieve and map the current couple space invitation', async () => {
+    user.mockReturnValue({ id: 'user-1' });
+    rpc.mockResolvedValue({
+      data: [
+        {
+          invitation_id: 'invitation-1',
+          token: 'invitation-token',
+          status: 'pending',
+          expires_at: '2026-11-02T12:00:00.000Z',
+          accepted_at: null,
+          created_at: '2026-10-26T12:00:00.000Z',
+        },
+      ],
+      error: null,
+    });
+
+    await expect(service.getCurrentInvitation()).resolves.toEqual({
+      invitationId: 'invitation-1',
+      token: 'invitation-token',
+      status: 'pending',
+      expiresAt: '2026-11-02T12:00:00.000Z',
+      acceptedAt: null,
+      createdAt: '2026-10-26T12:00:00.000Z',
+    });
+
+    expect(rpc).toHaveBeenCalledWith('get_current_couple_space_invitation');
+  });
 });
