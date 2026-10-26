@@ -1,11 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { CoupleSpaceService } from '../../services/couple-space.service';
 import { CoupleSpaceOverview } from '../../models/couple-space-overview.model';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CoupleSpaceInvitation } from '../../models/couple-space-invitation.model';
 
 @Component({
   selector: 'app-couple-space-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './couple-space-page.html',
 })
 export class CoupleSpacePage implements OnInit {
@@ -21,7 +23,9 @@ export class CoupleSpacePage implements OnInit {
   public readonly loadErrorMessage = signal<string | null>(null);
   public readonly actionErrorMessage = signal<string | null>(null);
   public readonly successMessage = signal<string | null>(null);
-  public readonly invitationToken = signal<string | null>(null);
+  public readonly currentInvitation = signal<CoupleSpaceInvitation | null>(null);
+  public readonly isLoadingInvitation = signal(false);
+  public readonly invitationErrorMessage = signal<string | null>(null);
 
   public ngOnInit(): void {
     void this.loadCurrentCoupleSpace();
@@ -48,6 +52,11 @@ export class CoupleSpacePage implements OnInit {
     try {
       const overview = await this.coupleSpaceService.getCurrentCoupleSpace();
       this.coupleSpaceOverview.set(overview);
+      if (overview?.membership.role === 'owner') {
+        await this.loadCurrentInvitation();
+      } else {
+        this.currentInvitation.set(null);
+      }
     } catch {
       this.loadErrorMessage.set(
         'No fue posible cargar la información de tu espacio de pareja. Recarga la página e inténtalo nuevamente.',
@@ -95,19 +104,27 @@ export class CoupleSpacePage implements OnInit {
     }
 
     this.isCreatingInvitation.set(true);
-    this.invitationToken.set(null);
     this.actionErrorMessage.set(null);
     this.successMessage.set(null);
 
     try {
       const token = await this.coupleSpaceService.createCoupleSpaceInvitation();
-      this.invitationToken.set(token);
 
-      this.successMessage.set('Tu invitación a tu espacio de pareja fue creada correctamente.');
-    } catch {
-      this.actionErrorMessage.set(
-        'No fue posible crear tu invitación al espacio de pareja. Inténtalo nuevamente.',
+      const invitation = await this.coupleSpaceService.getCurrentInvitation();
+
+      if (!invitation || invitation.token !== token) {
+        throw new Error('Created invitation could not be loaded.');
+      }
+
+      this.currentInvitation.set(invitation);
+
+      this.successMessage.set(
+        invitation.status === 'pending'
+          ? 'La invitación está lista para compartir.'
+          : 'El estado de la invitación se actualizó correctamente.',
       );
+    } catch {
+      this.actionErrorMessage.set('No fue posible crear la invitación. Inténtalo nuevamente.');
     } finally {
       this.isCreatingInvitation.set(false);
     }
@@ -142,6 +159,25 @@ export class CoupleSpacePage implements OnInit {
       );
     } finally {
       this.isJoining.set(false);
+    }
+  }
+
+  private async loadCurrentInvitation(): Promise<void> {
+    if (this.isLoadingInvitation()) {
+      return;
+    }
+
+    this.isLoadingInvitation.set(true);
+    this.invitationErrorMessage.set(null);
+
+    try {
+      const invitation = await this.coupleSpaceService.getCurrentInvitation();
+
+      this.currentInvitation.set(invitation);
+    } catch {
+      this.invitationErrorMessage.set('No fue posible cargar el estado de la invitación.');
+    } finally {
+      this.isLoadingInvitation.set(false);
     }
   }
 }
