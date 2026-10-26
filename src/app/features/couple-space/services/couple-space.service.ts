@@ -4,6 +4,14 @@ import { AuthService } from '../../auth/services/auth.service';
 import { CoupleSpaceOverview } from '../models/couple-space-overview.model';
 import { CoupleSpace } from '../models/couple-space.model';
 import { CoupleSpaceMembership } from '../models/couple-space-membership.model';
+import { CoupleSpaceMember } from '../models/couple-space-member.model';
+
+interface CoupleSpaceMemberRow {
+  user_id: string;
+  display_name: string;
+  role: CoupleSpaceMember['role'];
+  joined_at: string;
+}
 
 @Service()
 export class CoupleSpaceService {
@@ -20,15 +28,15 @@ export class CoupleSpaceService {
       return null;
     }
 
-    const [coupleSpace, memberCount] = await Promise.all([
+    const [coupleSpace, members] = await Promise.all([
       this.getCoupleSpace(coupleSpaceMembership.coupleSpaceId),
-      this.getMemberCount(coupleSpaceMembership.coupleSpaceId),
+      this.getMembers(),
     ]);
 
     return {
       coupleSpace: coupleSpace,
       membership: coupleSpaceMembership,
-      memberCount: memberCount,
+      members: members,
     };
   }
 
@@ -79,17 +87,21 @@ export class CoupleSpaceService {
     };
   }
 
-  private async getMemberCount(coupleSpaceId: string): Promise<number> {
-    const { data, error } = await this.supabase
-      .from('couple_space_memberships')
-      .select('user_id')
-      .eq('couple_space_id', coupleSpaceId);
+  private async getMembers(): Promise<CoupleSpaceMember[]> {
+    const { data, error } = await this.supabase.rpc('get_current_couple_space_members');
 
     if (error) {
       throw error;
     }
 
-    return data?.length ?? 0;
+    const memberRows = (data ?? []) as CoupleSpaceMemberRow[];
+
+    return memberRows.map((member) => ({
+      userId: member.user_id,
+      displayName: member.display_name,
+      role: member.role,
+      joinedAt: member.joined_at,
+    }));
   }
 
   public async createCoupleSpace(name: string): Promise<CoupleSpaceOverview> {

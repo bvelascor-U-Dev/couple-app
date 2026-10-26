@@ -49,8 +49,15 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
-        loadComponent:() =>
-          import('./features/profile/pages/profile-page').then((m) => m.ProfilePage)
+        loadComponent: () =>
+          import('./features/profile/pages/profile-page').then((m) => m.ProfilePage),
+      },
+      {
+        path: 'couple-space',
+        loadComponent: () =>
+          import('./features/couple-space/pages/couple-space-page/couple-space-page').then(
+            (m) => m.CoupleSpacePage,
+          ),
       },
     ],
   },
