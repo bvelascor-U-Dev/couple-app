@@ -33,7 +33,20 @@ describe('CoupleSpaceService', () => {
       role: 'owner',
       joinedAt: '2026-10-24T12:00:00.000Z',
     },
-    memberCount: 2,
+    members: [
+      {
+        userId: 'user-1',
+        displayName: 'Sofia Example',
+        role: 'owner',
+        joinedAt: '2026-10-24T12:00:00.000Z',
+      },
+      {
+        userId: 'user-2',
+        displayName: 'Daniel Example',
+        role: 'member',
+        joinedAt: '2026-10-24T12:30:00.000Z',
+      },
+    ],
   };
 
   let service: CoupleSpaceService;
@@ -92,20 +105,28 @@ describe('CoupleSpaceService', () => {
     };
     const maybeSingle = vi.fn().mockResolvedValue({ data: membershipRow, error: null });
     const membershipEq = vi.fn().mockReturnValue({ maybeSingle });
-    const memberCountEq = vi.fn().mockResolvedValue({
-      data: [{ user_id: 'user-1' }, { user_id: 'user-2' }],
-      error: null,
-    });
-    const membershipsSelect = vi.fn((columns: string) => {
-      if (columns === 'couple_space_id,user_id,role,joined_at') {
-        return { eq: membershipEq };
-      }
-
-      return { eq: memberCountEq };
-    });
+    const membershipsSelect = vi.fn().mockReturnValue({ eq: membershipEq });
     const single = vi.fn().mockResolvedValue({ data: coupleSpaceRow, error: null });
     const coupleSpaceEq = vi.fn().mockReturnValue({ single });
     const coupleSpaceSelect = vi.fn().mockReturnValue({ eq: coupleSpaceEq });
+
+    rpc.mockResolvedValue({
+      data: [
+        {
+          user_id: 'user-1',
+          display_name: 'Sofia Example',
+          role: 'owner',
+          joined_at: '2026-10-24T12:00:00.000Z',
+        },
+        {
+          user_id: 'user-2',
+          display_name: 'Daniel Example',
+          role: 'member',
+          joined_at: '2026-10-24T12:30:00.000Z',
+        },
+      ],
+      error: null,
+    });
 
     from.mockImplementation((table: string) => {
       if (table === 'couple_space_memberships') {
@@ -118,7 +139,7 @@ describe('CoupleSpaceService', () => {
     await expect(service.getCurrentCoupleSpace()).resolves.toEqual(overview);
 
     expect(from).toHaveBeenCalledWith('couple_spaces');
-    expect(memberCountEq).toHaveBeenCalledWith('couple_space_id', 'couple-space-1');
+    expect(rpc).toHaveBeenCalledWith('get_current_couple_space_members');
   });
 
   it('should create a couple space with a normalized name and return its overview', async () => {

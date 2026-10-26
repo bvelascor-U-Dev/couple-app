@@ -10,11 +10,12 @@ describe('NavigationComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NavigationComponent],
-      providers: [provideRouter([]),
-      {
-        provide: AuthService,
-        useValue: authServiceMock,
-      },
+      providers: [
+        provideRouter([]),
+        {
+          provide: AuthService,
+          useValue: authServiceMock,
+        },
       ],
     }).compileComponents();
   });
@@ -42,6 +43,7 @@ describe('NavigationComponent', () => {
       '/app/plans-hobbies',
       '/app/projects-trips',
       '/app/profile',
+      '/app/couple-space',
     ]);
   });
 });
