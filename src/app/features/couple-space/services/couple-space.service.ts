@@ -29,7 +29,7 @@ export class CoupleSpaceService {
   private readonly authService = inject(AuthService);
 
   public async getCurrentCoupleSpace(): Promise<CoupleSpaceOverview | null> {
-    const userId = this.getAuthenticatedUserId();
+    const userId = this.authService.requireAuthenticatedUserId();
 
     const coupleSpaceMembership: CoupleSpaceMembership | null =
       await this.getCoupleSpaceMembership(userId);
@@ -76,7 +76,7 @@ export class CoupleSpaceService {
   private async getCoupleSpace(spaceId: string): Promise<CoupleSpace> {
     const { data, error } = await this.supabase
       .from('couple_spaces')
-      .select('id,name,created_by,created_at,updated_at')
+      .select('id,name,currency_code,created_by,created_at,updated_at')
       .eq('id', spaceId)
       .single();
 
@@ -91,6 +91,7 @@ export class CoupleSpaceService {
     return {
       id: data.id,
       name: data.name,
+      currencyCode: data.currency_code,
       createdBy: data.created_by,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
@@ -115,7 +116,7 @@ export class CoupleSpaceService {
   }
 
   public async createCoupleSpace(name: string): Promise<CoupleSpaceOverview> {
-    this.getAuthenticatedUserId();
+    this.authService.requireAuthenticatedUserId();
     const normalizedName = name.trim();
     if (normalizedName.length < 2 || normalizedName.length > 80) {
       throw new Error('Invalid couple space name');
@@ -143,7 +144,7 @@ export class CoupleSpaceService {
   }
 
   public async createCoupleSpaceInvitation(): Promise<string> {
-    this.getAuthenticatedUserId();
+    this.authService.requireAuthenticatedUserId();
 
     const { data, error } = await this.supabase.rpc('create_couple_space_invitation');
 
@@ -158,7 +159,7 @@ export class CoupleSpaceService {
   }
 
   public async acceptCoupleSpaceInvitation(token: string): Promise<CoupleSpaceOverview> {
-    this.getAuthenticatedUserId();
+    this.authService.requireAuthenticatedUserId();
     const normalizedToken = token.trim();
 
     if (!normalizedToken) {
@@ -188,7 +189,7 @@ export class CoupleSpaceService {
   }
 
   public async getCurrentInvitation(): Promise<CoupleSpaceInvitation | null> {
-    this.getAuthenticatedUserId();
+    this.authService.requireAuthenticatedUserId();
 
     const { data, error } = await this.supabase.rpc('get_current_couple_space_invitation');
 
@@ -211,14 +212,5 @@ export class CoupleSpaceService {
       acceptedAt: invitation.accepted_at,
       createdAt: invitation.created_at,
     };
-  }
-
-  private getAuthenticatedUserId(): string {
-    const userId = this.authService.user()?.id;
-
-    if (!userId) {
-      throw new Error('No authenticated user');
-    }
-    return userId;
   }
 }
