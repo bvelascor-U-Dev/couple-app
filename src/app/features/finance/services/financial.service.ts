@@ -4,7 +4,7 @@ import { FinancialTransaction, TransactionType } from '../models/financial-trans
 import { AuthService } from '../../auth/services/auth.service';
 import { FinancialCategory } from '../models/financial-category.model';
 import { FinancialSubcategory } from '../models/financial-subcategory.model';
-import { FinancialTransactionInput } from '../models/create-financial-transaction.input';
+import { FinancialTransactionInput } from '../models/financial-transaction.input';
 
 interface FinancialCategoryRow {
   id: string;
