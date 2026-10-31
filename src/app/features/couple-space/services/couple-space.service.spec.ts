@@ -8,7 +8,7 @@ import { CoupleSpaceService } from './couple-space.service';
 describe('CoupleSpaceService', () => {
   const from = vi.fn();
   const rpc = vi.fn();
-  const user = vi.fn();
+  const requireAuthenticatedUserId = vi.fn();
 
   const supabaseClientMock = {
     from,
@@ -16,13 +16,14 @@ describe('CoupleSpaceService', () => {
   } as unknown as SupabaseClient;
 
   const authServiceMock = {
-    user,
+    requireAuthenticatedUserId,
   } as unknown as AuthService;
 
   const overview: CoupleSpaceOverview = {
     coupleSpace: {
       id: 'couple-space-1',
       name: 'Nuestro espacio',
+      currencyCode: 'COP',
       createdBy: 'user-1',
       createdAt: '2026-10-24T12:00:00.000Z',
       updatedAt: '2026-10-24T12:00:00.000Z',
@@ -72,7 +73,7 @@ describe('CoupleSpaceService', () => {
   });
 
   it('should return null when the authenticated user does not belong to a couple space', async () => {
-    user.mockReturnValue({ id: 'user-1' });
+    requireAuthenticatedUserId.mockReturnValue('user-1');
 
     const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const eq = vi.fn().mockReturnValue({ maybeSingle });
@@ -88,7 +89,7 @@ describe('CoupleSpaceService', () => {
   });
 
   it('should retrieve and map the authenticated user couple space overview', async () => {
-    user.mockReturnValue({ id: 'user-1' });
+    requireAuthenticatedUserId.mockReturnValue('user-1');
 
     const membershipRow = {
       couple_space_id: 'couple-space-1',
@@ -99,6 +100,7 @@ describe('CoupleSpaceService', () => {
     const coupleSpaceRow = {
       id: 'couple-space-1',
       name: 'Nuestro espacio',
+      currency_code: 'COP',
       created_by: 'user-1',
       created_at: '2026-10-24T12:00:00.000Z',
       updated_at: '2026-10-24T12:00:00.000Z',
@@ -143,7 +145,7 @@ describe('CoupleSpaceService', () => {
   });
 
   it('should create a couple space with a normalized name and return its overview', async () => {
-    user.mockReturnValue({ id: 'user-1' });
+    requireAuthenticatedUserId.mockReturnValue('user-1');
     rpc.mockResolvedValue({ data: 'couple-space-1', error: null });
     const getCurrentCoupleSpace = vi
       .spyOn(service, 'getCurrentCoupleSpace')
@@ -158,7 +160,7 @@ describe('CoupleSpaceService', () => {
   });
 
   it('should create an invitation and accept it using a normalized token', async () => {
-    user.mockReturnValue({ id: 'user-2' });
+    requireAuthenticatedUserId.mockReturnValue('user-2');
     rpc
       .mockResolvedValueOnce({ data: 'invitation-token', error: null })
       .mockResolvedValueOnce({ data: 'couple-space-1', error: null });
@@ -179,7 +181,7 @@ describe('CoupleSpaceService', () => {
   });
 
   it('should retrieve and map the current couple space invitation', async () => {
-    user.mockReturnValue({ id: 'user-1' });
+    requireAuthenticatedUserId.mockReturnValue('user-1');
     rpc.mockResolvedValue({
       data: [
         {
