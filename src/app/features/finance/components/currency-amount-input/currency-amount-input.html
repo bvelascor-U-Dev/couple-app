@@ -1,0 +1,21 @@
+<div class="join w-full">
+  <span
+    class="join-item flex items-center border border-[#E5E7EB] bg-[#F6F5F7] px-4 text-sm font-semibold text-[#64748B]"
+    aria-hidden="true"
+  >
+    {{ currencySymbol() }}
+  </span>
+
+  <input
+    [id]="inputId()"
+    class="input join-item w-full border-[#E5E7EB] focus:border-[#7C3B70] focus:outline-[#7C3B70]"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+    [placeholder]="placeholder()"
+    [value]="displayValue()"
+    [disabled]="isDisabled()"
+    (input)="onInput($event)"
+    (blur)="onBlur()"
+  />
+</div>

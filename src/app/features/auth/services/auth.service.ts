@@ -108,4 +108,14 @@ export class AuthService {
       this._sessionState.set(null);
     }
   }
+
+  public requireAuthenticatedUserId(): string {
+    const userId = this.user()?.id;
+
+    if (!userId) {
+      throw new Error('No authenticated user');
+    }
+
+    return userId;
+  }
 }

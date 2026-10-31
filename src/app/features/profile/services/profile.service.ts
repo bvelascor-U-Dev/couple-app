@@ -17,7 +17,7 @@ export class ProfileService {
     private readonly authService = inject(AuthService);
 
     public async getProfile (): Promise<Profile> {
-        const userId = this.getAuthenticatedUserId();
+        const userId = this.authService.requireAuthenticatedUserId();
         
         const { data, error } = await this.supabase
           .from('profiles')
@@ -37,7 +37,7 @@ export class ProfileService {
     }
 
     public async updateProfile (input: UpdateProfileInput): Promise<Profile> {
-        const userId = this.getAuthenticatedUserId();
+        const userId = this.authService.requireAuthenticatedUserId();
 
         const displayName = input.displayName.trim();
 
@@ -63,16 +63,6 @@ export class ProfileService {
         }
 
         return this.toProfile(data);
-    }
-
-    private getAuthenticatedUserId(): string {
-        const userId = this.authService.user()?.id;
-
-        if(!userId){
-            throw new Error ('No authenticated user.');
-        }
-
-        return userId;
     }
 
     private toProfile(row: ProfileRow): Profile {

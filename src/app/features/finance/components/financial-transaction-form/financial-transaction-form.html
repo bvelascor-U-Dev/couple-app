@@ -1,0 +1,288 @@
+<section class="min-h-full bg-[#FAFAFB] px-4 py-8 sm:px-6 lg:px-8">
+  @if (successMessage()) {
+    <div
+      class="fixed top-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border border-[#0F766E]/25 bg-[#ECFDF5] px-4 py-3 text-center text-sm font-medium text-[#0F766E] shadow-lg"
+      role="status"
+      aria-live="polite"
+    >
+      {{ successMessage() }}
+    </div>
+  }
+
+  <div class="mx-auto max-w-3xl">
+    <header class="mb-6">
+      <p class="text-sm font-semibold text-[#7c3b70]">Finanzas</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-[#1E293B]">Registrar movimiento</h1>
+      <p class="mt-2 text-[#64748B]">Añade tus ingresos y gastos de forma rápida.</p>
+    </header>
+
+    <form
+      class="card border border-[#E5E7EB] bg-white shadow-sm"
+      [formGroup]="transactionForm"
+      (ngSubmit)="onSave()"
+      novalidate
+    >
+      <div class="card-body gap-5 p-5 sm:p-7">
+        @if (loadErrorMessage()) {
+          <div
+            class="rounded-xl border border-[#DC5A5A]/25 bg-[#FFF1F2] px-4 py-3 text-[#DC5A5A]"
+            role="alert"
+          >
+            <span>{{ loadErrorMessage() }}</span>
+          </div>
+        }
+
+        @if (saveErrorMessage()) {
+          <div
+            class="rounded-xl border border-[#DC5A5A]/25 bg-[#FFF1F2] px-4 py-3 text-[#DC5A5A]"
+            role="alert"
+          >
+            <span>{{ saveErrorMessage() }}</span>
+          </div>
+        }
+
+        <fieldset>
+          <legend class="mb-3 text-sm font-semibold text-base-content">Tipo de movimiento</legend>
+
+          <div class="grid grid-cols-2 gap-3">
+            <label
+              class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#1E293B] transition-colors has-checked:border-[#FF6B6B] has-checked:bg-[#FFF1F2] has-checked:text-[#B64343]"
+            >
+              <input
+                class="radio radio-sm border-[#FF6B6B] checked:bg-[#FF6B6B]"
+                type="radio"
+                formControlName="transactionType"
+                name="transactionType"
+                value="expense"
+              />
+              Gasto
+            </label>
+
+            <label
+              class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#1E293B] transition-colors has-checked:border-[#0F766E] has-checked:bg-[#ECFDF5] has-checked:text-[#0F766E]"
+            >
+              <input
+                class="radio radio-sm border-[#0F766E] checked:bg-[#0F766E]"
+                type="radio"
+                formControlName="transactionType"
+                name="transactionType"
+                value="income"
+              />
+              Ingreso
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div class="form-control">
+            <label class="label" for="amount">
+              <span class="label-text font-semibold">Monto</span>
+            </label>
+
+            <app-currency-amount-input
+              inputId="amount"
+              currencyCode="COP"
+              locale="es-CO"
+              formControlName="amount"
+            />
+
+            @if (
+              transactionForm.controls.amount.invalid && transactionForm.controls.amount.touched
+            ) {
+              <p class="mt-2 text-sm text-[#DC5A5A]">Ingresa un monto mayor a cero.</p>
+            }
+          </div>
+
+          <div class="form-control">
+            <label class="label" for="effectiveDate">
+              <span class="label-text font-semibold">Fecha del movimiento</span>
+            </label>
+
+            <input
+              id="effectiveDate"
+              class="input w-full border-[#E5E7EB] focus:border-[#7C3B70] focus:outline-[#7C3B70]"
+              type="date"
+              formControlName="effectiveDate"
+            />
+
+            @if (
+              transactionForm.controls.effectiveDate.invalid &&
+              transactionForm.controls.effectiveDate.touched
+            ) {
+              <p class="mt-2 text-sm text-[#DC5A5A]">Selecciona una fecha.</p>
+            }
+          </div>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div class="form-control">
+            <label class="label" for="category">
+              <span class="label-text font-semibold">Categoría</span>
+            </label>
+
+            <select
+              id="category"
+              class="select w-full border-[#E5E7EB] focus:border-[#7C3B70] focus:outline-[#7C3B70]"
+              formControlName="categoryId"
+            >
+              <option value="">Selecciona una categoría</option>
+              @for (category of categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+
+            @if (isLoadingCategories()) {
+              <p class="mt-2 flex items-center gap-2 text-sm text-base-content/60">
+                <span class="loading loading-spinner loading-xs"></span>
+                Cargando categorías...
+              </p>
+            } @else if (
+              transactionForm.controls.categoryId.invalid &&
+              transactionForm.controls.categoryId.touched
+            ) {
+              <p class="mt-2 text-sm text-[#DC5A5A]">Selecciona una categoría.</p>
+            }
+          </div>
+
+          <div class="form-control">
+            <label class="label" for="subcategory">
+              <span class="label-text font-semibold">
+                Subcategoría
+                <span class="font-normal text-base-content/60">(opcional)</span>
+              </span>
+            </label>
+
+            <select
+              id="subcategory"
+              class="select w-full border-[#E5E7EB] focus:border-[#7C3B70] focus:outline-[#7C3B70]"
+              formControlName="subcategoryId"
+            >
+              <option [ngValue]="null">Sin subcategoría</option>
+              @for (subcategory of subcategories(); track subcategory.id) {
+                <option [value]="subcategory.id">{{ subcategory.name }}</option>
+              }
+            </select>
+
+            @if (isLoadingSubcategories()) {
+              <p class="mt-2 flex items-center gap-2 text-sm text-base-content/60">
+                <span class="loading loading-spinner loading-xs"></span>
+                Cargando subcategorías...
+              </p>
+            } @else if (subcategoryErrorMessage()) {
+              <p class="mt-2 text-sm text-[#D97706]" role="alert">
+                {{ subcategoryErrorMessage() }}
+              </p>
+            } @else if (
+              !transactionForm.controls.categoryId.value &&
+              transactionForm.controls.categoryId.touched
+            ) {
+              <p class="mt-2 text-sm text-base-content/60">Primero selecciona una categoría.</p>
+            }
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-[#4F46E5]/20 bg-[#EEF2FF] px-4 py-3" role="note">
+          <p class="text-sm font-semibold text-[#4F46E5]">Registro rápido</p>
+          <p class="mt-1 text-sm text-[#64748B]">
+            Ya puedes guardar tu transacción !!! Con el valor y la categoría es suficiente.
+          </p>
+        </div>
+
+        @if (transactionForm.controls.transactionType.value === 'expense') {
+          <fieldset class="rounded-xl border border-[#E5E7EB] bg-[#F6F5F7] p-4">
+            <legend class="px-1 text-sm font-semibold text-base-content">Alcance del gasto</legend>
+
+            <span class="mb-3 block text-sm text-[#64748B]">
+              Define si este gasto es personal o si forma parte de los gastos compartidos.
+            </span>
+
+            <div class="grid grid-cols-2 gap-3">
+              <label
+                class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-medium text-[#1E293B] transition-colors has-checked:border-[#7C3B70] has-checked:bg-[#7C3B70]/10 has-checked:text-[#7C3B70]"
+              >
+                <input
+                  class="radio radio-sm border-[#7C3B70] checked:bg-[#7C3B70]"
+                  type="radio"
+                  name="expenseScope"
+                  value="personal"
+                  formControlName="expenseScope"
+                />
+                Personal
+              </label>
+
+              <label
+                class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-medium text-[#1E293B] transition-colors has-checked:border-[#7C3B70] has-checked:bg-[#7C3B70]/10 has-checked:text-[#7C3B70]"
+              >
+                <input
+                  class="radio radio-sm border-[#7C3B70] checked:bg-[#7C3B70]"
+                  type="radio"
+                  name="expenseScope"
+                  value="shared"
+                  formControlName="expenseScope"
+                />
+                Compartido
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="rounded-xl border border-[#D97706] bg-[#FFFBEB] p-4">
+            <label class="flex cursor-pointer items-start gap-3">
+              <input
+                class="checkbox checkbox-sm mt-0.5 border-[#D97706] checked:bg-[#D97706]"
+                type="checkbox"
+                formControlName="isSmallExpense"
+              />
+
+              <span>
+                <span class="block text-sm font-semibold text-base-content">
+                  Es un gasto hormiga
+                </span>
+                <span class="mt-1 block text-sm text-base-content/70">
+                  Pequeño y frecuente; ayúdate con un concepto para identificarlo.
+                </span>
+              </span>
+            </label>
+          </div>
+        }
+
+        <div class="form-control">
+          <label class="label" for="concept">
+            <span class="label-text font-semibold">
+              Concepto
+              <span class="font-normal text-base-content/60">(opcional)</span>
+            </span>
+          </label>
+
+          <textarea
+            id="concept"
+            class="textarea min-h-24 w-full resize-y border-[#E5E7EB] focus:border-[#7C3B70] focus:outline-[#7C3B70]"
+            maxlength="250"
+            placeholder="Por ejemplo: mercado semanal, taxi o café."
+            formControlName="concept"
+          ></textarea>
+
+          @if (transactionForm.controls.isSmallExpense.value) {
+            <p class="mt-2 text-sm text-[#7c3b70]">
+              Te recomendamos añadir un concepto como café, taxi o snack.
+            </p>
+          }
+        </div>
+
+        <div class="border-t border-[#E5E7EB] pt-5">
+          <button
+            class="btn w-full border-[#7c3b70] bg-[#7c3b70] text-white hover:border-[#682f5e] hover:bg-[#682f5e] sm:w-auto"
+            type="submit"
+            [disabled]="isSaving() || isLoadingCategories()"
+          >
+            @if (isSaving()) {
+              <span class="loading loading-spinner loading-sm"></span>
+              <span>Registrando movimiento...</span>
+            } @else {
+              <span>Registrar movimiento</span>
+            }
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>

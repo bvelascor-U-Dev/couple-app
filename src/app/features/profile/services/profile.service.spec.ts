@@ -6,14 +6,14 @@ import { ProfileService } from './profile.service';
 
 describe('ProfileService', () => {
   const from = vi.fn();
-  const user = vi.fn();
+  const requireAuthenticatedUserId = vi.fn();
 
   const supabaseClientMock = {
     from,
   } as unknown as SupabaseClient;
 
   const authServiceMock = {
-    user,
+    requireAuthenticatedUserId,
   } as unknown as AuthService;
 
   let service: ProfileService;
@@ -39,7 +39,7 @@ describe('ProfileService', () => {
   });
 
   it('should retrieve and map the authenticated user profile', async () => {
-    user.mockReturnValue({ id: 'user-1' });
+    requireAuthenticatedUserId.mockReturnValue('user-1');
 
     const profileRow = {
       id: 'user-1',
@@ -67,7 +67,7 @@ describe('ProfileService', () => {
   });
 
   it('should update the authenticated user profile with a normalized display name', async () => {
-    user.mockReturnValue({ id: 'user-1' });
+    requireAuthenticatedUserId.mockReturnValue('user-1');
 
     const profileRow = {
       id: 'user-1',
@@ -96,7 +96,9 @@ describe('ProfileService', () => {
   });
 
   it('should reject profile operations when there is no authenticated user', async () => {
-    user.mockReturnValue(null);
+    requireAuthenticatedUserId.mockImplementation(() => {
+      throw new Error('No authenticated user.');
+    });
 
     await expect(service.getProfile()).rejects.toThrow('No authenticated user.');
     await expect(service.updateProfile({ displayName: 'Sofia Example' })).rejects.toThrow(

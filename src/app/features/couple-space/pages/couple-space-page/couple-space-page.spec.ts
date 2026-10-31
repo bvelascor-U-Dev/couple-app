@@ -23,6 +23,7 @@ describe('CoupleSpacePage', () => {
     coupleSpace: {
       id: 'couple-space-1',
       name: 'Sofia y Daniel',
+      currencyCode: 'COP',
       createdBy: 'user-1',
       createdAt: '2026-10-24T12:00:00.000Z',
       updatedAt: '2026-10-24T12:00:00.000Z',
