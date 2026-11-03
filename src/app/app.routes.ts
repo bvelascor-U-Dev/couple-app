@@ -28,7 +28,32 @@ export const routes: Routes = [
       {
         path: 'finance',
         loadComponent: () =>
-          import('./features/finance/pages/finance-page').then((m) => m.FinancePage),
+          import('./features/finance/layouts/finance-layout/finance-layout').then(
+            (m) => m.FinanceLayout
+          ),
+          children: [
+            {
+              path: '',
+              pathMatch: 'full',
+              redirectTo: 'activity'
+            },
+            {
+              path:'activity',
+              loadComponent: ()=> 
+                  import('./features/finance/pages/financial-activity-page/financial-activity-page').then((m)=> m.FinancialActivityPage)  
+            },
+            {
+              path:'register',
+              loadComponent: ()=> 
+                  import('./features/finance/pages/financial-register-page/finance-register-page').then((m)=> m.FinanceRegisterPage)  
+            },
+            {
+              path:'dashboard',
+              loadComponent: ()=> 
+                  import('./features/finance/pages/financial-dashboard-page/financial-dashboard-page').then((m)=> m.FinancialDashboardPage)  
+            }
+          ]
+
       },
       {
         path: 'goals-habits',
