@@ -1,0 +1,164 @@
+<div class="mx-auto max-w-6xl space-y-4">
+  <header
+    class="relative overflow-hidden rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/10 via-base-100 to-success/5 px-6 py-5 sm:px-8 sm:py-6"
+  >
+    <svg
+      class="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-3/5 text-primary/45 sm:block"
+      viewBox="0 0 640 180"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle
+        cx="270"
+        cy="44"
+        r="58"
+        fill="currentColor"
+        fill-opacity="0.05"
+        stroke="currentColor"
+      />
+      <circle
+        cx="390"
+        cy="82"
+        r="50"
+        fill="#0F766E"
+        fill-opacity="0.06"
+        stroke="#0F766E"
+        stroke-opacity="0.4"
+      />
+      <path
+        d="M120 146C205 120 236 102 302 104C374 107 403 82 474 70C531 60 567 35 620 26"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+      <circle cx="302" cy="104" r="5" fill="white" stroke="currentColor" stroke-width="2" />
+      <circle cx="410" cy="96" r="5" fill="white" stroke="currentColor" stroke-width="2" />
+      <circle cx="510" cy="59" r="5" fill="white" stroke="currentColor" stroke-width="2" />
+      <circle cx="620" cy="26" r="5" fill="white" stroke="currentColor" stroke-width="2" />
+      <path
+        d="M0 165C81 125 142 143 211 130C267 119 294 86 363 104C423 120 462 155 531 142C577 134 609 121 640 114V180H0V165Z"
+        fill="currentColor"
+        fill-opacity="0.05"
+      />
+    </svg>
+
+    <div class="relative flex items-center gap-4">
+      <span
+        class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary sm:size-14"
+        aria-hidden="true"
+      >
+        <svg
+          class="size-7 sm:size-8"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18.5z"
+          />
+          <path d="M4 9h16" />
+          <path d="M15 15h2" />
+        </svg>
+      </span>
+
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wide text-primary">Tu dinero</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight text-base-content lg:text-4xl">
+          Finanzas
+        </h1>
+        <p class="mt-1 text-sm text-base-content/65 sm:text-base">
+          Una visión clara de lo que construyen juntos.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <section class="border-b border-base-300">
+    <nav
+      class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+      aria-label="Secciones de finanzas"
+    >
+      <ul class="flex min-w-0 items-stretch" role="list">
+        <li>
+          <a
+            class="relative flex min-h-15 items-center gap-2 px-4 text-sm font-semibold text-base-content/65 transition-colors after:absolute after:right-4 after:bottom-0 after:left-4 after:h-0.75 after:origin-left after:scale-x-0 after:rounded-full after:bg-primary after:transition-transform hover:text-primary sm:px-5 sm:text-base sm:after:right-5 sm:after:left-5"
+            routerLink="/app/finance/dashboard"
+            routerLinkActive="!text-primary after:!scale-x-100"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <svg
+              class="size-5 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span>Resumen</span>
+          </a>
+        </li>
+
+        <li>
+          <a
+            class="relative flex min-h-15 items-center gap-2 px-4 text-sm font-semibold text-base-content/65 transition-colors after:absolute after:right-4 after:bottom-0 after:left-4 after:h-0.75 after:origin-left after:scale-x-0 after:rounded-full after:bg-primary after:transition-transform hover:text-primary sm:px-5 sm:text-base sm:after:right-5 sm:after:left-5"
+            routerLink="/app/finance/activity"
+            routerLinkActive="!text-primary after:!scale-x-100"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <svg
+              class="size-5 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 6h16" />
+              <path d="M4 12h16" />
+              <path d="M4 18h10" />
+              <circle cx="18" cy="18" r="2" />
+            </svg>
+            <span>Actividad</span>
+          </a>
+        </li>
+      </ul>
+
+      <a
+        class="btn btn-primary my-3 min-h-12 w-full rounded-xl border-0 px-5 shadow-sm transition-transform hover:-translate-y-0.5 sm:w-auto"
+        routerLink="/app/finance/register"
+        routerLinkActive="ring-2 ring-primary/20 ring-offset-2"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <svg
+          class="size-5 shrink-0"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8v8" />
+          <path d="M8 12h8" />
+        </svg>
+        Registrar movimiento
+      </a>
+    </nav>
+  </section>
+
+  <router-outlet />
+</div>

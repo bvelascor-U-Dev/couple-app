@@ -5,6 +5,10 @@ import { AuthService } from '../../auth/services/auth.service';
 import { FinancialCategory } from '../models/financial-category.model';
 import { FinancialSubcategory } from '../models/financial-subcategory.model';
 import { FinancialTransactionInput } from '../models/financial-transaction.input';
+import { FinancialActivityItem } from '../models/financial-activity-item.model';
+import { FinancialActivityQuery } from '../models/financial-activity-query.model';
+import { FinancialActivityFilters } from '../models/financial-activity-filters.model';
+import { FinancialActivitySummary } from '../models/financial-activity-summary.model';
 
 interface FinancialCategoryRow {
   id: string;
@@ -38,6 +42,21 @@ interface FinancialTransactionRow {
   is_small_expense: boolean;
   created_at: string;
   updated_at: string;
+}
+
+interface FinancialActivityRow extends FinancialTransactionRow {
+  category: {
+    name: string;
+  };
+  subcategory: {
+    name: string;
+  } | null;
+};
+
+interface FinancialActivitySummaryRow {
+  income_total: string,
+  expense_total: string,
+  balance: string,
 }
 
 @Service()
@@ -129,6 +148,40 @@ export class FinancialService {
     return this.mapFinancialTransaction(data as FinancialTransactionRow);
   }
 
+  public async getFinancialActivity(query: FinancialActivityQuery): Promise<FinancialActivityItem[]>{
+    this.authService.requireAuthenticatedUserId();
+
+    if (!query.coupleSpaceId || !query.startDate || !query.endDate) {
+      throw new Error('A couple space and date range are required.');
+    }
+
+    const activityQuery = this.supabase 
+      .from('financial_transactions')
+      .select('id,couple_space_id,created_by,transaction_type,category_id,subcategory_id,amount,currency_code,effective_date,concept,expense_scope,is_small_expense,created_at,updated_at,category:financial_categories(name),subcategory:financial_subcategories(name)')
+      .eq('couple_space_id',query.coupleSpaceId)
+      .gte('effective_date',query.startDate)
+      .lte('effective_date', query.endDate)
+      .order('effective_date', {ascending: false})
+      .order('created_at', { ascending: false })
+      .limit(query.limit)
+      
+    const { data, error} = query.creatorId
+      ? await activityQuery.eq('created_by', query.creatorId)
+      : await activityQuery;
+
+    if(error){
+      throw error;
+    }
+
+    const financialItems = (data ?? []) as unknown as FinancialActivityRow[];
+
+    return financialItems.map((item)=> {
+      return this.mapFinancialActivityItem(item);
+    });
+      
+  };
+  
+
   private mapFinancialTransaction(row: FinancialTransactionRow): FinancialTransaction {
     return {
       id: row.id,
@@ -146,5 +199,44 @@ export class FinancialService {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
+  };
+
+  private mapFinancialActivityItem(row: FinancialActivityRow): FinancialActivityItem {
+    return{
+      ...this.mapFinancialTransaction(row),
+      categoryName: row.category.name,
+      subcategoryName: row.subcategory?.name ?? null,
+    };
+  };
+
+  public async getFinancialActivitySummary (filters: FinancialActivityFilters): Promise<FinancialActivitySummary>{
+    this.authService.requireAuthenticatedUserId();
+
+    if (!filters.coupleSpaceId || !filters.startDate || !filters.endDate) {
+      throw new Error('A couple space and date range are required.');
+    }
+
+    const {data, error} = await this.supabase.rpc('get_financial_activity_summary', {
+      p_couple_space_id: filters.coupleSpaceId,
+      p_start_date: filters.startDate,
+      p_end_date: filters.endDate,
+      p_creator_id: filters.creatorId ?? null,
+    })
+    .single();
+
+    if(error){
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Financial activity summary did not return a record.');
+    }
+
+    const financialSummary = data as FinancialActivitySummaryRow;
+     return {
+      incomeTotal: financialSummary.income_total,
+      expenseTotal: financialSummary.expense_total,
+      balance: financialSummary.balance
+     }
   }
 }

@@ -6,10 +6,12 @@ import { FinancialService } from './financial.service';
 
 describe('FinancialService', () => {
   const from = vi.fn();
+  const rpc = vi.fn();
   const requireAuthenticatedUserId = vi.fn();
 
   const supabaseClientMock = {
     from,
+    rpc,
   } as unknown as SupabaseClient;
 
   const authServiceMock = {
@@ -190,5 +192,107 @@ describe('FinancialService', () => {
     from.mockReturnValue({ select });
 
     await expect(service.getCategories('income')).rejects.toBe(databaseError);
+  });
+
+  it('should retrieve financial activity for the requested member and map related names', async () => {
+    const activityRow = {
+      id: 'transaction-1',
+      couple_space_id: 'couple-space-1',
+      created_by: 'user-2',
+      transaction_type: 'expense',
+      category_id: 'category-1',
+      subcategory_id: null,
+      amount: '25000.0000',
+      currency_code: 'COP',
+      effective_date: '2026-11-04',
+      concept: 'Mercado semanal',
+      expense_scope: 'shared',
+      is_small_expense: false,
+      created_at: '2026-11-04T12:00:00.000Z',
+      updated_at: '2026-11-04T12:00:00.000Z',
+      category: { name: 'Alimentación' },
+      subcategory: null,
+    };
+    const eqCreator = vi.fn().mockResolvedValue({ data: [activityRow], error: null });
+    const limit = vi.fn().mockReturnValue({ eq: eqCreator });
+    const orderByCreatedAt = vi.fn().mockReturnValue({ limit });
+    const orderByEffectiveDate = vi.fn().mockReturnValue({ order: orderByCreatedAt });
+    const lteEndDate = vi.fn().mockReturnValue({ order: orderByEffectiveDate });
+    const gteStartDate = vi.fn().mockReturnValue({ lte: lteEndDate });
+    const eqCoupleSpace = vi.fn().mockReturnValue({ gte: gteStartDate });
+    const select = vi.fn().mockReturnValue({ eq: eqCoupleSpace });
+
+    from.mockReturnValue({ select });
+
+    await expect(
+      service.getFinancialActivity({
+        coupleSpaceId: 'couple-space-1',
+        startDate: '2026-11-01',
+        endDate: '2026-11-30',
+        creatorId: 'user-2',
+        limit: 50,
+      }),
+    ).resolves.toEqual([
+      {
+        id: 'transaction-1',
+        coupleSpaceId: 'couple-space-1',
+        createdBy: 'user-2',
+        transactionType: 'expense',
+        categoryId: 'category-1',
+        subcategoryId: null,
+        amount: '25000.0000',
+        currencyCode: 'COP',
+        effectiveDate: '2026-11-04',
+        concept: 'Mercado semanal',
+        expenseScope: 'shared',
+        isSmallExpense: false,
+        createdAt: '2026-11-04T12:00:00.000Z',
+        updatedAt: '2026-11-04T12:00:00.000Z',
+        categoryName: 'Alimentación',
+        subcategoryName: null,
+      },
+    ]);
+
+    expect(requireAuthenticatedUserId).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenCalledWith('financial_transactions');
+    expect(eqCoupleSpace).toHaveBeenCalledWith('couple_space_id', 'couple-space-1');
+    expect(gteStartDate).toHaveBeenCalledWith('effective_date', '2026-11-01');
+    expect(lteEndDate).toHaveBeenCalledWith('effective_date', '2026-11-30');
+    expect(eqCreator).toHaveBeenCalledWith('created_by', 'user-2');
+  });
+
+  it('should retrieve and map the financial activity summary', async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: {
+        income_total: '4000000.0000',
+        expense_total: '25000.0000',
+        balance: '3975000.0000',
+      },
+      error: null,
+    });
+
+    rpc.mockReturnValue({ single });
+
+    await expect(
+      service.getFinancialActivitySummary({
+        coupleSpaceId: 'couple-space-1',
+        startDate: '2026-11-01',
+        endDate: '2026-11-30',
+        creatorId: 'user-1',
+      }),
+    ).resolves.toEqual({
+      incomeTotal: '4000000.0000',
+      expenseTotal: '25000.0000',
+      balance: '3975000.0000',
+    });
+
+    expect(requireAuthenticatedUserId).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith('get_financial_activity_summary', {
+      p_couple_space_id: 'couple-space-1',
+      p_start_date: '2026-11-01',
+      p_end_date: '2026-11-30',
+      p_creator_id: 'user-1',
+    });
+    expect(single).toHaveBeenCalledTimes(1);
   });
 });

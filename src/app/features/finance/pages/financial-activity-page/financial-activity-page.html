@@ -1,0 +1,573 @@
+<section class="mx-auto max-w-6xl space-y-7 pb-8">
+  <header>
+    <h2 class="text-xl font-bold tracking-tight text-base-content lg:text-2xl">
+      Actividad financiera
+    </h2>
+  </header>
+
+  <section
+    class="flex flex-col gap-3 border-b border-base-300 pb-5 lg:flex-row lg:items-center lg:justify-between"
+    aria-label="Filtros de actividad"
+  >
+    <div class="flex min-w-0 flex-wrap items-center gap-2">
+      <details class="dropdown">
+        <summary
+          class="btn min-h-11 rounded-xl border-primary/50 bg-primary/8 px-4 text-primary shadow-none hover:border-primary hover:bg-primary/12"
+        >
+          <svg
+            class="size-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="9" cy="8" r="3" />
+            <path d="M3 20c.6-3.2 2.6-5 6-5s5.4 1.8 6 5" />
+            <circle cx="17" cy="10" r="2.5" />
+            <path d="M17 14c2.2 0 3.7 1.2 4 3.5" />
+          </svg>
+          <span>Ver:</span>
+          @if (selectedView() === 'both') {
+            <span>Ambos</span>
+          } @else if (selectedView() === 'me') {
+            <span>Yo</span>
+          } @else {
+            <span>Pareja</span>
+          }
+          <svg
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </summary>
+
+        <ul
+          class="menu dropdown-content z-20 mt-2 w-56 rounded-2xl border border-base-300 bg-base-100 p-2 shadow-xl"
+        >
+          <li>
+            <button
+              class="min-h-11 rounded-xl"
+              [class.bg-primary/10]="selectedView() === 'both'"
+              [class.text-primary]="selectedView() === 'both'"
+              type="button"
+              (click)="onViewChange('both')"
+            >
+              <span
+                class="flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary"
+              >
+                A B
+              </span>
+              Ambos
+              @if (selectedView() === 'both') {
+                <span class="ml-auto text-primary">✓</span>
+              }
+            </button>
+          </li>
+          <li>
+            <button
+              class="min-h-11 rounded-xl"
+              [class.bg-primary/10]="selectedView() === 'me'"
+              [class.text-primary]="selectedView() === 'me'"
+              type="button"
+              (click)="onViewChange('me')"
+            >
+              <span
+                class="flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary"
+              >
+                Yo
+              </span>
+              Mis movimientos
+              @if (selectedView() === 'me') {
+                <span class="ml-auto text-primary">✓</span>
+              }
+            </button>
+          </li>
+          <li>
+            <button
+              class="min-h-11 rounded-xl"
+              [class.bg-primary/10]="selectedView() === 'partner'"
+              [class.text-primary]="selectedView() === 'partner'"
+              type="button"
+              (click)="onViewChange('partner')"
+            >
+              <span
+                class="flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary"
+              >
+                P
+              </span>
+              Movimientos de pareja
+              @if (selectedView() === 'partner') {
+                <span class="ml-auto text-primary">✓</span>
+              }
+            </button>
+          </li>
+        </ul>
+      </details>
+
+      <button
+        class="btn min-h-11 rounded-xl border-base-300 bg-base-100 px-4 font-medium text-base-content/80 shadow-none hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+        type="button"
+      >
+        <svg
+          class="size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M7 3v4" />
+          <path d="M17 3v4" />
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M3 10h18" />
+        </svg>
+        Tipo: Todos
+        <svg
+          class="size-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      <button
+        class="btn min-h-11 rounded-xl border-base-300 bg-base-100 px-4 font-medium text-base-content/80 shadow-none hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+        type="button"
+      >
+        <svg
+          class="size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m20 12-8 8-8-8V6l8-3 8 3z" />
+          <circle cx="12" cy="10" r="1.5" />
+        </svg>
+        Categoría
+        <svg
+          class="size-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        class="btn min-h-11 flex-1 rounded-xl border-primary/40 bg-primary/5 px-4 font-medium text-primary shadow-none hover:border-primary hover:bg-primary/10 lg:flex-none"
+        type="button"
+      >
+        <svg
+          class="size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M16 3v4" />
+          <path d="M8 3v4" />
+          <path d="M3 10h18" />
+        </svg>
+        {{ selectedMonth() }}
+        <svg
+          class="size-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      <button
+        class="btn btn-square min-h-11 rounded-xl border-base-300 bg-base-100 text-base-content/70 shadow-none hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+        type="button"
+        aria-label="Más filtros"
+      >
+        <svg
+          class="size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 5h16" />
+          <path d="M7 12h10" />
+          <path d="M10 19h4" />
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  @if (errorMessage()) {
+    <div class="alert alert-error" role="alert">
+      <span>{{ errorMessage() }}</span>
+    </div>
+  } @else if (selectedView() === 'partner' && coupleSpaceOverview()?.members.length === 1) {
+    <div
+      class="rounded-2xl border border-primary/20 bg-primary/5 px-6 py-12 text-center"
+      role="status"
+    >
+      <span
+        class="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+        aria-hidden="true"
+      >
+        <svg
+          class="size-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="9" cy="8" r="3" />
+          <circle cx="17" cy="10" r="2.5" />
+          <path d="M3 20c.6-3.2 2.6-5 6-5s5.4 1.8 6 5" />
+          <path d="M17 14c2.2 0 3.7 1.2 4 3.5" />
+        </svg>
+      </span>
+
+      <p class="mt-4 font-semibold text-base-content">Aún no tienes una pareja vinculada.</p>
+
+      <p class="mt-2 text-sm text-base-content/60">
+        Invita a tu pareja desde Espacio de pareja para consultar su actividad financiera.
+      </p>
+    </div>
+  } @else {
+    <section class="grid gap-3 lg:grid-cols-3" aria-label="Resumen del período">
+      <article
+        class="flex min-w-0 items-center gap-4 rounded-2xl border border-success/15 bg-success/10 p-5"
+      >
+        <span
+          class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success"
+          aria-hidden="true"
+        >
+          <svg
+            class="size-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 19V5" />
+            <path d="m6 11 6-6 6 6" />
+          </svg>
+        </span>
+
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-base-content/65">Ingresos</p>
+          @if (activitySummary(); as summary) {
+            <p class="text-xl font-bold tabular-nums text-success xl:text-2xl">
+              <span>$</span>
+              {{ summary.incomeTotal | currency: 'COP' : '' : '1.0-0' : 'es-CO' }}
+            </p>
+          } @else {
+            <div class="mt-1 h-7 w-32 animate-pulse rounded bg-success/15"></div>
+          }
+        </div>
+      </article>
+
+      <article
+        class="flex min-w-0 items-center gap-4 rounded-2xl border border-error/15 bg-error/10 p-5"
+      >
+        <span
+          class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-error/10 text-error"
+          aria-hidden="true"
+        >
+          <svg
+            class="size-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 5v14" />
+            <path d="m18 13-6 6-6-6" />
+          </svg>
+        </span>
+
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-base-content/65">Gastos</p>
+          @if (activitySummary(); as summary) {
+            <p class="text-xl font-bold tabular-nums text-error xl:text-2xl">
+              <span>$</span>
+              {{ summary.expenseTotal | currency: 'COP' : '' : '1.0-0' : 'es-CO' }}
+            </p>
+          } @else {
+            <div class="mt-1 h-7 w-32 animate-pulse rounded bg-error/15"></div>
+          }
+        </div>
+      </article>
+
+      <article
+        class="flex min-w-0 items-center gap-4 rounded-2xl border border-primary/15 bg-primary/8 p-5"
+      >
+        <span
+          class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
+          aria-hidden="true"
+        >
+          <svg
+            class="size-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 3v18" />
+            <path d="M8 7h6a2.5 2.5 0 0 1 0 5h-4a2.5 2.5 0 0 0 0 5h6" />
+          </svg>
+        </span>
+
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-base-content/65">Balance del período</p>
+          @if (activitySummary(); as summary) {
+            <p
+              class="text-xl font-bold tabular-nums xl:text-2xl"
+              [class.text-primary]="+summary.balance > 0"
+              [class.text-error]="+summary.balance < 0"
+              [class.text-base-content]="+summary.balance === 0"
+            >
+              @if (+summary.balance > 0) {
+                <span>+</span>
+              }
+              <span>$</span>
+
+              {{ summary.balance | currency: 'COP' : '' : '1.0-0' : 'es-CO' }}
+            </p>
+          } @else {
+            <div class="mt-1 h-7 w-32 animate-pulse rounded bg-primary/15"></div>
+          }
+        </div>
+      </article>
+    </section>
+
+    <section>
+      <header class="mb-3 px-1">
+        <h3 class="text-xl font-bold tracking-tight text-base-content lg:text-2xl">
+          Movimientos recientes
+        </h3>
+        @if (isLoading()) {
+          <p class="mt-1 text-sm text-base-content/60">Cargando movimientos...</p>
+        } @else if (activityItems().length > 1) {
+          <p class="mt-1 text-sm text-base-content/60">
+            {{ activityItems().length }}
+            movimientos registrados este mes.
+          </p>
+        } @else if (activityItems().length === 1) {
+          <p class="mt-1 text-sm text-base-content/60">
+            {{ activityItems().length }}
+            movimiento registrado este mes.
+          </p>
+        } @else {
+          <p class="mt-1 text-sm text-base-content/60">No hay movimientos registrados este mes.</p>
+        }
+      </header>
+
+      @if (isLoading()) {
+        <div class="divide-y divide-base-300 border-y border-base-300">
+          @for (skeleton of [1, 2, 3]; track skeleton) {
+            <div class="flex items-center gap-3 px-1 py-5 sm:px-2" aria-hidden="true">
+              <div class="size-12 shrink-0 animate-pulse rounded-2xl bg-base-300"></div>
+              <div class="min-w-0 flex-1 space-y-2">
+                <div class="h-4 w-44 animate-pulse rounded bg-base-300"></div>
+                <div class="h-3 w-32 animate-pulse rounded bg-base-300"></div>
+                <div class="h-3 w-40 animate-pulse rounded bg-base-300"></div>
+              </div>
+              <div class="h-5 w-20 animate-pulse rounded bg-base-300"></div>
+            </div>
+          }
+        </div>
+      } @else {
+        @if (activityItems().length === 0) {
+          <div
+            class="rounded-2xl border border-dashed border-base-300 bg-base-100 px-6 py-12 text-center"
+            role="status"
+          >
+            <span
+              class="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+              aria-hidden="true"
+            >
+              <svg
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M4 5h16" />
+                <path d="M7 12h10" />
+                <path d="M10 19h4" />
+              </svg>
+            </span>
+            <p class="mt-4 font-semibold text-base-content">
+              Aún no hay movimientos en este período.
+            </p>
+            <p class="mt-2 text-sm text-base-content/60">
+              Los ingresos y gastos que registres aparecerán aquí.
+            </p>
+          </div>
+        } @else {
+          <div class="divide-y divide-base-300 border-y border-base-300">
+            @for (item of activityItems(); track item.id) {
+              <article class="flex items-center gap-3 px-1 py-5 transition-colors sm:px-2">
+                <span
+                  class="flex size-12 shrink-0 items-center justify-center rounded-2xl"
+                  [class.bg-success/10]="item.transactionType === 'income'"
+                  [class.text-success]="item.transactionType === 'income'"
+                  [class.bg-error/10]="item.transactionType === 'expense'"
+                  [class.text-error]="item.transactionType === 'expense'"
+                >
+                  @if (item.transactionType === 'income') {
+                    <svg
+                      class="size-6"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 19V5" />
+                      <path d="m6 11 6-6 6 6" />
+                    </svg>
+                  } @else {
+                    <svg
+                      class="size-6"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 5v14" />
+                      <path d="m18 13-6 6-6-6" />
+                    </svg>
+                  }
+                </span>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-sm font-bold text-base-content/70">{{ item.categoryName }}</p>
+
+                    @if (item.transactionType; as transactionType) {
+                      <span
+                        class="badge badge-sm font-medium"
+                        [class.border-success/25]="transactionType === 'income'"
+                        [class.bg-success/10]="transactionType === 'income'"
+                        [class.text-success]="transactionType === 'income'"
+                        [class.border-error/25]="transactionType === 'expense'"
+                        [class.bg-error/10]="transactionType === 'expense'"
+                        [class.text-error]="transactionType === 'expense'"
+                      >
+                        {{ transactionType === 'income' ? 'Ingreso' : 'Gasto' }}
+                      </span>
+                    }
+
+                    @if (item.transactionType === 'expense' && item.expenseScope === 'shared') {
+                      <span
+                        class="badge badge-sm border-primary/20 bg-primary/8 font-medium text-primary"
+                      >
+                        Compartido
+                      </span>
+                    }
+
+                    @if (item.isSmallExpense) {
+                      <span
+                        class="badge badge-sm border-warning/30 bg-warning/10 font-medium text-warning"
+                      >
+                        Gasto hormiga
+                      </span>
+                    }
+                  </div>
+
+                  @if (item.subcategoryName; as subcategoryName) {
+                    <p class="mt-1 text-sm text-base-content/70">{{ subcategoryName }}</p>
+                  }
+
+                  @if (item.concept; as concept) {
+                    <p class="mt-1 truncate text-sm text-base-content/60">
+                      <span class="font-medium text-base-content/70">Concepto:</span>
+                      {{ concept }}
+                    </p>
+                  }
+                  <p class="mt-1 text-xs text-base-content/55">
+                    {{ formatEffectiveDate(item.effectiveDate) }} ·
+                    {{ getMemberDisplayName(item.createdBy) }}
+                  </p>
+                </div>
+
+                @if (item.transactionType; as transactionType) {
+                  <p
+                    class="shrink-0 text-right text-lg font-bold"
+                    [class.text-success]="transactionType === 'income'"
+                    [class.text-error]="transactionType === 'expense'"
+                  >
+                    @if (item.transactionType === 'income') {
+                      <span>+</span>
+                    } @else {
+                      <span>-</span>
+                    }
+                    <span>$</span>
+                    {{ item.amount | currency: 'COP' : '' : '1.0-0' : 'es-CO' }}
+                  </p>
+                }
+              </article>
+            }
+          </div>
+        }
+      }
+    </section>
+  }
+</section>
