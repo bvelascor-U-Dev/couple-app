@@ -7,6 +7,8 @@ import { FinancialSubcategory } from '../models/financial-subcategory.model';
 import { FinancialTransactionInput } from '../models/financial-transaction.input';
 import { FinancialActivityItem } from '../models/financial-activity-item.model';
 import { FinancialActivityQuery } from '../models/financial-activity-query.model';
+import { FinancialActivityFilters } from '../models/financial-activity-filters.model';
+import { FinancialActivitySummary } from '../models/financial-activity-summary.model';
 
 interface FinancialCategoryRow {
   id: string;
@@ -50,6 +52,12 @@ interface FinancialActivityRow extends FinancialTransactionRow {
     name: string;
   } | null;
 };
+
+interface FinancialActivitySummaryRow {
+  income_total: string,
+  expense_total: string,
+  balance: string,
+}
 
 @Service()
 export class FinancialService {
@@ -200,4 +208,35 @@ export class FinancialService {
       subcategoryName: row.subcategory?.name ?? null,
     };
   };
+
+  public async getFinancialActivitySummary (filters: FinancialActivityFilters): Promise<FinancialActivitySummary>{
+    this.authService.requireAuthenticatedUserId();
+
+    if (!filters.coupleSpaceId || !filters.startDate || !filters.endDate) {
+      throw new Error('A couple space and date range are required.');
+    }
+
+    const {data, error} = await this.supabase.rpc('get_financial_activity_summary', {
+      p_couple_space_id: filters.coupleSpaceId,
+      p_start_date: filters.startDate,
+      p_end_date: filters.endDate,
+      p_creator_id: filters.creatorId ?? null,
+    })
+    .single();
+
+    if(error){
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Financial activity summary did not return a record.');
+    }
+
+    const financialSummary = data as FinancialActivitySummaryRow;
+     return {
+      incomeTotal: financialSummary.income_total,
+      expenseTotal: financialSummary.expense_total,
+      balance: financialSummary.balance
+     }
+  }
 }
