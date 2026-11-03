@@ -6,6 +6,8 @@ import { CoupleSpaceOverview } from '../../../couple-space/models/couple-space-o
 import { FinancialActivityItem } from '../../models/financial-activity-item.model';
 import { FinancialActivityQuery } from '../../models/financial-activity-query.model';
 import { CurrencyPipe } from '@angular/common';
+import { FinancialActivitySummary } from '../../models/financial-activity-summary.model';
+import { FinancialActivityFilters } from '../../models/financial-activity-filters.model';
 
 type FinancialActivityView = 'both' | 'me' | 'partner';
 
@@ -22,11 +24,13 @@ export class FinancialActivityPage implements OnInit {
   private readonly authService = inject(AuthService);
 
   readonly activityItems = signal<FinancialActivityItem[]>([]);
+  readonly activitySummary = signal<FinancialActivitySummary | null>(null);
   readonly coupleSpaceOverview = signal<CoupleSpaceOverview | null>(null);
   readonly selectedView = signal<FinancialActivityView>('both');
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly currentUserId = signal<string | null>(null);
+  readonly selectedMonth = signal<string>('');
 
   public async ngOnInit(): Promise<void> {
     await this.loadActivity();
@@ -35,6 +39,8 @@ export class FinancialActivityPage implements OnInit {
   private async loadActivity(): Promise<void>{
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.activityItems.set([]);
+    this.activitySummary.set(null);
 
     try{    
       const coupleSpaceOverview = await this.coupleSpaceService.getCurrentCoupleSpace();
@@ -62,19 +68,30 @@ export class FinancialActivityPage implements OnInit {
       }
 
       const {startDate, endDate} = this.getCurrentMonthRange();
+      this.selectedMonth.set(this.formatEffectiveDate(startDate));
+
+      const filters: FinancialActivityFilters = {
+        coupleSpaceId,
+        startDate,
+        endDate,
+      };
+
+      if (creatorId) {
+        filters.creatorId = creatorId;
+      }
 
       const query: FinancialActivityQuery = {
-        coupleSpaceId: coupleSpaceId,
-        startDate: startDate,
-        endDate: endDate,
-        limit: this.limitQuery
-      }
-      if(creatorId){
-        query.creatorId = creatorId;
-      }
+        ...filters,
+        limit: this.limitQuery,
+      };
 
-      const activityItems = await this.financialService.getFinancialActivity(query);
-      this.activityItems.set(activityItems)
+      const [activityItems, activitySummary] = await Promise.all([
+        this.financialService.getFinancialActivity(query),
+        this.financialService.getFinancialActivitySummary(filters),
+      ]);
+
+      this.activityItems.set(activityItems);
+      this.activitySummary.set(activitySummary);
     } catch {
       this.errorMessage.set('No fue posible cargar la actividad financiera. Inténtalo nuevamente.');
     } finally {
@@ -134,7 +151,6 @@ export class FinancialActivityPage implements OnInit {
       year: 'numeric',
     }).format(localDate);
   }
- 
 
 }
 
