@@ -74,6 +74,7 @@ describe('FinancialTransactionFormComponent', () => {
   it('should save an expense with normalized optional fields and reset only entry fields', async () => {
     await initializeComponent();
     createTransaction.mockResolvedValue({ id: 'transaction-1' });
+    const expectedNextEffectiveDate = component.transactionForm.controls.effectiveDate.value;
     vi.useFakeTimers();
 
     try {
@@ -102,7 +103,9 @@ describe('FinancialTransactionFormComponent', () => {
       });
       expect(component.successMessage()).toBe('El movimiento se registró correctamente.');
       expect(component.transactionForm.controls.transactionType.value).toBe('expense');
-      expect(component.transactionForm.controls.effectiveDate.value).toBe('2026-10-31');
+      expect(component.transactionForm.controls.effectiveDate.value).toBe(
+        expectedNextEffectiveDate,
+      );
       expect(component.transactionForm.controls.categoryId.value).toBe('');
       expect(component.transactionForm.controls.amount.value).toBeNull();
       expect(component.transactionForm.controls.concept.value).toBe('');
