@@ -1,0 +1,26 @@
+.date-range-panel {
+  position: fixed !important;
+  z-index: 50;
+  top: 50%;
+  right: 1rem;
+  left: 1rem;
+  width: auto;
+  max-height: calc(100dvh - 2rem);
+  margin-top: 0;
+  overflow-y: auto;
+  transform: translateY(-50%);
+}
+
+@media (min-width: 40rem) {
+  .date-range-panel {
+    position: absolute !important;
+    top: auto;
+    right: 0;
+    left: auto;
+    width: 22rem;
+    max-height: none;
+    margin-top: 0.5rem;
+    overflow-y: visible;
+    transform: none;
+  }
+}
