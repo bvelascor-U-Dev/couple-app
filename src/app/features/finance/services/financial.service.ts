@@ -9,6 +9,7 @@ import { FinancialActivityItem } from '../models/financial-activity-item.model';
 import { FinancialActivityQuery } from '../models/financial-activity-query.model';
 import { FinancialActivityFilters } from '../models/financial-activity-filters.model';
 import { FinancialActivitySummary } from '../models/financial-activity-summary.model';
+import { FinancialActivityResult } from '../models/financial-activity-result.model';
 
 interface FinancialCategoryRow {
   id: string;
@@ -64,15 +65,21 @@ export class FinancialService {
   private readonly supabase = inject(SUPABASE_CLIENT);
   private readonly authService = inject(AuthService);
 
-  public async getCategories(transactionType: TransactionType): Promise<FinancialCategory[]> {
+  public async getCategories(transactionType?: TransactionType): Promise<FinancialCategory[]> {
     this.authService.requireAuthenticatedUserId();
-    const { data, error } = await this.supabase
+
+    let categoryQuery = this.supabase
       .from('financial_categories')
       .select('id,name,transaction_type,is_active,sort_order')
-      .eq('transaction_type', transactionType)
       .eq('is_active', true)
       .order('sort_order')
       .order('name');
+
+    if(transactionType !== undefined){
+      categoryQuery = categoryQuery.eq('transaction_type',transactionType)
+    }
+
+    const{data, error} = await categoryQuery;
 
     if (error) {
       throw error;
@@ -148,37 +155,69 @@ export class FinancialService {
     return this.mapFinancialTransaction(data as FinancialTransactionRow);
   }
 
-  public async getFinancialActivity(query: FinancialActivityQuery): Promise<FinancialActivityItem[]>{
+  public async getFinancialActivity(query: FinancialActivityQuery): Promise<FinancialActivityResult>{
     this.authService.requireAuthenticatedUserId();
 
     if (!query.coupleSpaceId || !query.startDate || !query.endDate) {
       throw new Error('A couple space and date range are required.');
     }
 
-    const activityQuery = this.supabase 
+    if (!Number.isInteger(query.page) || query.page < 1) {
+      throw new Error('The page must be greater than zero.');
+    }
+
+    if (!Number.isInteger(query.pageSize) || query.pageSize < 1) {
+      throw new Error('The page size must be greater than zero.');
+    }
+    const from = (query.page-1)*query.pageSize;
+    const to = (query.page*query.pageSize)-1;
+
+    let activityQuery = this.supabase 
       .from('financial_transactions')
-      .select('id,couple_space_id,created_by,transaction_type,category_id,subcategory_id,amount,currency_code,effective_date,concept,expense_scope,is_small_expense,created_at,updated_at,category:financial_categories(name),subcategory:financial_subcategories(name)')
+      .select('id,couple_space_id,created_by,transaction_type,category_id,subcategory_id,amount,currency_code,effective_date,concept,expense_scope,is_small_expense,created_at,updated_at,category:financial_categories(name),subcategory:financial_subcategories(name)',{ count: 'exact' })
       .eq('couple_space_id',query.coupleSpaceId)
       .gte('effective_date',query.startDate)
       .lte('effective_date', query.endDate)
       .order('effective_date', {ascending: false})
       .order('created_at', { ascending: false })
-      .limit(query.limit)
+      .order('id', { ascending: false })
+      .range(from,to)
       
-    const { data, error} = query.creatorId
-      ? await activityQuery.eq('created_by', query.creatorId)
-      : await activityQuery;
+    const equalityFilters = [
+      ['created_by', query.creatorId],
+      ['transaction_type', query.transactionType],
+      ['subcategory_id', query.subcategoryId],
+      ['is_small_expense', query.isSmallExpense],
+    ] as const;
 
+    for (const [column, value] of equalityFilters) {
+      if (value !== undefined) {
+        activityQuery = activityQuery.eq(column, value);
+      }
+    }
+
+    if (query.categoryIds && query.categoryIds.length > 0) {
+      activityQuery = activityQuery.in(
+        'category_id',
+        query.categoryIds,
+      );
+    }
+
+    const {data, error, count} = await activityQuery;
     if(error){
       throw error;
     }
 
     const financialItems = (data ?? []) as unknown as FinancialActivityRow[];
 
-    return financialItems.map((item)=> {
+    const items = financialItems.map((item) => {
       return this.mapFinancialActivityItem(item);
     });
-      
+    
+    return {
+      items: items,
+      totalCount: count ?? 0
+    };      
   };
   
 
@@ -221,6 +260,10 @@ export class FinancialService {
       p_start_date: filters.startDate,
       p_end_date: filters.endDate,
       p_creator_id: filters.creatorId ?? null,
+      p_transaction_type: filters.transactionType ?? null,
+      p_category_ids: filters.categoryIds ?? null,
+      p_subcategory_id: filters.subcategoryId ?? null,
+      p_is_small_expense: filters.isSmallExpense ?? null,
     })
     .single();
 
