@@ -15,6 +15,7 @@ describe('FinancialActivityPage', () => {
   const getCurrentCoupleSpace = vi.fn();
   const getFinancialActivity = vi.fn();
   const getFinancialActivitySummary = vi.fn();
+  const getCategories = vi.fn();
   const requireAuthenticatedUserId = vi.fn();
 
   const coupleSpaceServiceMock = {
@@ -24,6 +25,7 @@ describe('FinancialActivityPage', () => {
   const financialServiceMock = {
     getFinancialActivity,
     getFinancialActivitySummary,
+    getCategories,
   };
 
   const authServiceMock = {
@@ -94,8 +96,12 @@ describe('FinancialActivityPage', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     getCurrentCoupleSpace.mockResolvedValue(overview);
-    getFinancialActivity.mockResolvedValue(activityItems);
+    getFinancialActivity.mockResolvedValue({
+      items: activityItems,
+      totalCount: activityItems.length,
+    });
     getFinancialActivitySummary.mockResolvedValue(activitySummary);
+    getCategories.mockResolvedValue([]);
     requireAuthenticatedUserId.mockReturnValue('user-1');
 
     await TestBed.configureTestingModule({
@@ -133,7 +139,11 @@ describe('FinancialActivityPage', () => {
 
     expect(getCurrentCoupleSpace).toHaveBeenCalledTimes(1);
     expect(getFinancialActivity).toHaveBeenCalledWith(
-      expect.objectContaining({ coupleSpaceId: 'couple-space-1', limit: 50 }),
+      expect.objectContaining({
+        coupleSpaceId: 'couple-space-1',
+        page: 1,
+        pageSize: 20,
+      }),
     );
     expect(getFinancialActivitySummary).toHaveBeenCalledWith(
       expect.objectContaining({ coupleSpaceId: 'couple-space-1' }),
@@ -151,11 +161,14 @@ describe('FinancialActivityPage', () => {
     getFinancialActivity.mockClear();
     getFinancialActivitySummary.mockClear();
 
-    component.onViewChange('me');
+    component.onFiltersChange({
+      ...component.selectedFilters(),
+      memberView: 'me',
+    });
 
     await vi.waitFor(() => expect(component.isLoading()).toBe(false));
 
-    expect(component.selectedView()).toBe('me');
+    expect(component.selectedFilters().memberView).toBe('me');
     expect(getFinancialActivity).toHaveBeenCalledWith(
       expect.objectContaining({ creatorId: 'user-1' }),
     );
@@ -173,7 +186,10 @@ describe('FinancialActivityPage', () => {
     getFinancialActivity.mockClear();
     getFinancialActivitySummary.mockClear();
 
-    component.onViewChange('partner');
+    component.onFiltersChange({
+      ...component.selectedFilters(),
+      memberView: 'partner',
+    });
 
     await vi.waitFor(() => expect(component.isLoading()).toBe(false));
     fixture.detectChanges();
@@ -183,5 +199,63 @@ describe('FinancialActivityPage', () => {
     expect(getFinancialActivity).not.toHaveBeenCalled();
     expect(getFinancialActivitySummary).not.toHaveBeenCalled();
     expect(content).toContain('Aún no tienes una pareja vinculada.');
+  });
+
+  it('should reset pagination and reload with the complete selected filter set', async () => {
+    await initializeComponent();
+    component.currentPage.set(2);
+    getFinancialActivity.mockClear();
+    getFinancialActivitySummary.mockClear();
+
+    component.onFiltersChange({
+      ...component.selectedFilters(),
+      transactionType: 'expense',
+      categoryIds: ['category-1', 'category-2'],
+      isSmallExpense: true,
+    });
+
+    await vi.waitFor(() => expect(component.isLoading()).toBe(false));
+
+    expect(component.currentPage()).toBe(1);
+    expect(getFinancialActivity).toHaveBeenCalledWith(
+      expect.objectContaining({
+        page: 1,
+        transactionType: 'expense',
+        categoryIds: ['category-1', 'category-2'],
+        isSmallExpense: true,
+      }),
+    );
+    expect(getFinancialActivitySummary).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transactionType: 'expense',
+        categoryIds: ['category-1', 'category-2'],
+        isSmallExpense: true,
+      }),
+    );
+  });
+
+  it('should keep the loading state visible until an empty activity request finishes', async () => {
+    let resolveActivity: (result: { items: FinancialActivityItem[]; totalCount: number }) => void;
+    const pendingActivity = new Promise<{ items: FinancialActivityItem[]; totalCount: number }>(
+      (resolve) => {
+        resolveActivity = resolve;
+      },
+    );
+    getFinancialActivity.mockReturnValue(pendingActivity);
+
+    fixture.detectChanges();
+
+    let content = (fixture.nativeElement as HTMLElement).textContent;
+    expect(content).toContain('Cargando movimientos...');
+    expect(content).not.toContain(
+      'Aún no hay movimientos en este período o filtros seleccionados.',
+    );
+
+    resolveActivity!({ items: [], totalCount: 0 });
+    await vi.waitFor(() => expect(component.isLoading()).toBe(false));
+    fixture.detectChanges();
+
+    content = (fixture.nativeElement as HTMLElement).textContent;
+    expect(content).toContain('Aún no hay movimientos en este período o filtros seleccionados.');
   });
 });
