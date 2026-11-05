@@ -122,6 +122,21 @@ export class FinancialFiltersComponent {
     return this.formatMonthLabel(dateRange.startDate);
   });
 
+  readonly hasActiveFilters = computed(() => {
+    const filters = this.filters();
+    const currentMonthRange = this.createMonthDateRange(new Date());
+
+    return (
+      filters.memberView !== 'both' ||
+      filters.transactionType !== undefined ||
+      filters.categoryIds !== undefined ||
+      filters.isSmallExpense !== undefined ||
+      filters.dateRange.mode !== 'month' ||
+      filters.dateRange.startDate !== currentMonthRange.startDate ||
+      filters.dateRange.endDate !== currentMonthRange.endDate
+    );
+  });
+
   @HostListener('document:click', ['$event'])
   public closeDropdownsOnOutsideClick(event: MouseEvent): void {
     const target = event.target;
@@ -212,11 +227,14 @@ export class FinancialFiltersComponent {
 
   private formatMonthLabel(effectiveDate: string): string {
     const date = this.parseLocalDate(effectiveDate);
-
-    return new Intl.DateTimeFormat('es-CO', {
-      month: 'long',
+    const parts = new Intl.DateTimeFormat('es-CO', {
+      month: 'short',
       year: 'numeric',
-    }).format(date);
+    }).formatToParts(date);
+    const month = parts.find((part) => part.type === 'month')?.value.replace('.', '');
+    const year = parts.find((part) => part.type === 'year')?.value;
+
+    return month && year ? `${month} ${year}` : effectiveDate;
   }
 
   private formatDisplayDate(effectiveDate: string): string {
@@ -313,5 +331,21 @@ export class FinancialFiltersComponent {
     if (dropdown) {
       dropdown.open = false;
     }
+  }
+
+  public onClearAllFilters(): void {
+    if (!this.hasActiveFilters()) {
+      return;
+    }
+
+    this.dateRangeError.set(null);
+
+    this.emitFilters({
+      memberView: 'both',
+      transactionType: undefined,
+      categoryIds: undefined,
+      isSmallExpense: undefined,
+      dateRange: this.createMonthDateRange(new Date()),
+    });
   }
 }

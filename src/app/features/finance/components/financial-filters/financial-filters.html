@@ -384,7 +384,7 @@
           <path d="M12 8v8" />
           <path d="M9.5 10.5h3a1.5 1.5 0 0 1 0 3h-1a1.5 1.5 0 0 0 0 3h3" />
         </svg>
-        <span>Solo gastos hormiga</span>
+        <span>Gastos hormiga</span>
         <span
           class="ml-1 flex h-5 w-9 items-center rounded-full p-0.5 transition-colors"
           [class.justify-start]="filters().isSmallExpense !== true"
@@ -409,6 +409,28 @@
             }
           </span>
         </span>
+      </button>
+    }
+    @if (hasActiveFilters()) {
+      <button
+        class="btn min-h-10 rounded-full border-base-300 bg-base-100 px-3 text-sm font-medium text-base-content/70 shadow-none hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+        type="button"
+        (click)="onClearAllFilters()"
+      >
+        <svg
+          class="size-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 3-6.7" />
+          <path d="M3 3v6h6" />
+        </svg>
+        Limpiar
       </button>
     }
   </div>

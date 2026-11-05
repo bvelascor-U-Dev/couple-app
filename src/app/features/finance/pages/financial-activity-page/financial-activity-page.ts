@@ -111,21 +111,9 @@ export class FinancialActivityPage implements OnInit {
   }
 
   private createInitialFilters(): FinancialFilterSelection {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-
-    const startDate = this.formatDate(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-    const endDate = this.formatDate(year, month, lastDayOfMonth);
-
     return {
       memberView: 'both',
-      dateRange: {
-        mode: 'month',
-        startDate,
-        endDate,
-      },
+      dateRange: this.createCurrentMonthDateRange(),
     };
   }
 
@@ -208,5 +196,20 @@ export class FinancialActivityPage implements OnInit {
     } finally {
       this.isLoadingCategories.set(false);
     }
+  }
+  private createCurrentMonthDateRange() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    const startDate = this.formatDate(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+    const endDate = this.formatDate(year, month, lastDayOfMonth);
+
+    return {
+      mode: 'month' as const,
+      startDate,
+      endDate,
+    };
   }
 }
