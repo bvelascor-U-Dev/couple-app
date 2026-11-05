@@ -41,7 +41,7 @@ describe('FinancialService', () => {
   });
 
   it('should retrieve active categories of the requested transaction type and map them', async () => {
-    const orderByName = vi.fn().mockResolvedValue({
+    const eqTransactionType = vi.fn().mockResolvedValue({
       data: [
         {
           id: 'category-1',
@@ -53,10 +53,10 @@ describe('FinancialService', () => {
       ],
       error: null,
     });
+    const orderByName = vi.fn().mockReturnValue({ eq: eqTransactionType });
     const orderBySortOrder = vi.fn().mockReturnValue({ order: orderByName });
     const eqActive = vi.fn().mockReturnValue({ order: orderBySortOrder });
-    const eqTransactionType = vi.fn().mockReturnValue({ eq: eqActive });
-    const select = vi.fn().mockReturnValue({ eq: eqTransactionType });
+    const select = vi.fn().mockReturnValue({ eq: eqActive });
 
     from.mockReturnValue({ select });
 
@@ -183,11 +183,14 @@ describe('FinancialService', () => {
 
   it('should propagate database errors', async () => {
     const databaseError = new Error('Database request failed');
-    const orderByName = vi.fn().mockResolvedValue({ data: null, error: databaseError });
+    const eqTransactionType = vi.fn().mockResolvedValue({
+      data: null,
+      error: databaseError,
+    });
+    const orderByName = vi.fn().mockReturnValue({ eq: eqTransactionType });
     const orderBySortOrder = vi.fn().mockReturnValue({ order: orderByName });
     const eqActive = vi.fn().mockReturnValue({ order: orderBySortOrder });
-    const eqTransactionType = vi.fn().mockReturnValue({ eq: eqActive });
-    const select = vi.fn().mockReturnValue({ eq: eqTransactionType });
+    const select = vi.fn().mockReturnValue({ eq: eqActive });
 
     from.mockReturnValue({ select });
 
@@ -213,14 +216,29 @@ describe('FinancialService', () => {
       category: { name: 'Alimentación' },
       subcategory: null,
     };
-    const eqCreator = vi.fn().mockResolvedValue({ data: [activityRow], error: null });
-    const limit = vi.fn().mockReturnValue({ eq: eqCreator });
-    const orderByCreatedAt = vi.fn().mockReturnValue({ limit });
-    const orderByEffectiveDate = vi.fn().mockReturnValue({ order: orderByCreatedAt });
-    const lteEndDate = vi.fn().mockReturnValue({ order: orderByEffectiveDate });
-    const gteStartDate = vi.fn().mockReturnValue({ lte: lteEndDate });
-    const eqCoupleSpace = vi.fn().mockReturnValue({ gte: gteStartDate });
-    const select = vi.fn().mockReturnValue({ eq: eqCoupleSpace });
+    const queryResult = Promise.resolve({
+      data: [activityRow],
+      error: null,
+      count: 1,
+    });
+    const activityQuery = {
+      eq: vi.fn(),
+      gte: vi.fn(),
+      lte: vi.fn(),
+      order: vi.fn(),
+      range: vi.fn(),
+      in: vi.fn(),
+      then: queryResult.then.bind(queryResult),
+    };
+
+    activityQuery.eq.mockReturnValue(activityQuery);
+    activityQuery.gte.mockReturnValue(activityQuery);
+    activityQuery.lte.mockReturnValue(activityQuery);
+    activityQuery.order.mockReturnValue(activityQuery);
+    activityQuery.range.mockReturnValue(activityQuery);
+    activityQuery.in.mockReturnValue(activityQuery);
+
+    const select = vi.fn().mockReturnValue(activityQuery);
 
     from.mockReturnValue({ select });
 
@@ -230,35 +248,89 @@ describe('FinancialService', () => {
         startDate: '2026-11-01',
         endDate: '2026-11-30',
         creatorId: 'user-2',
-        limit: 50,
+        page: 1,
+        pageSize: 20,
       }),
-    ).resolves.toEqual([
-      {
-        id: 'transaction-1',
-        coupleSpaceId: 'couple-space-1',
-        createdBy: 'user-2',
-        transactionType: 'expense',
-        categoryId: 'category-1',
-        subcategoryId: null,
-        amount: '25000.0000',
-        currencyCode: 'COP',
-        effectiveDate: '2026-11-04',
-        concept: 'Mercado semanal',
-        expenseScope: 'shared',
-        isSmallExpense: false,
-        createdAt: '2026-11-04T12:00:00.000Z',
-        updatedAt: '2026-11-04T12:00:00.000Z',
-        categoryName: 'Alimentación',
-        subcategoryName: null,
-      },
-    ]);
+    ).resolves.toEqual({
+      items: [
+        {
+          id: 'transaction-1',
+          coupleSpaceId: 'couple-space-1',
+          createdBy: 'user-2',
+          transactionType: 'expense',
+          categoryId: 'category-1',
+          subcategoryId: null,
+          amount: '25000.0000',
+          currencyCode: 'COP',
+          effectiveDate: '2026-11-04',
+          concept: 'Mercado semanal',
+          expenseScope: 'shared',
+          isSmallExpense: false,
+          createdAt: '2026-11-04T12:00:00.000Z',
+          updatedAt: '2026-11-04T12:00:00.000Z',
+          categoryName: 'Alimentación',
+          subcategoryName: null,
+        },
+      ],
+      totalCount: 1,
+    });
 
     expect(requireAuthenticatedUserId).toHaveBeenCalledTimes(1);
     expect(from).toHaveBeenCalledWith('financial_transactions');
-    expect(eqCoupleSpace).toHaveBeenCalledWith('couple_space_id', 'couple-space-1');
-    expect(gteStartDate).toHaveBeenCalledWith('effective_date', '2026-11-01');
-    expect(lteEndDate).toHaveBeenCalledWith('effective_date', '2026-11-30');
-    expect(eqCreator).toHaveBeenCalledWith('created_by', 'user-2');
+    expect(activityQuery.eq).toHaveBeenCalledWith('couple_space_id', 'couple-space-1');
+    expect(activityQuery.gte).toHaveBeenCalledWith('effective_date', '2026-11-01');
+    expect(activityQuery.lte).toHaveBeenCalledWith('effective_date', '2026-11-30');
+    expect(activityQuery.eq).toHaveBeenCalledWith('created_by', 'user-2');
+    expect(activityQuery.range).toHaveBeenCalledWith(0, 19);
+  });
+
+  it('should compose combined activity filters and request the selected page', async () => {
+    const queryResult = Promise.resolve({
+      data: [],
+      error: null,
+      count: 43,
+    });
+    const activityQuery = {
+      eq: vi.fn(),
+      gte: vi.fn(),
+      lte: vi.fn(),
+      order: vi.fn(),
+      range: vi.fn(),
+      in: vi.fn(),
+      then: queryResult.then.bind(queryResult),
+    };
+
+    activityQuery.eq.mockReturnValue(activityQuery);
+    activityQuery.gte.mockReturnValue(activityQuery);
+    activityQuery.lte.mockReturnValue(activityQuery);
+    activityQuery.order.mockReturnValue(activityQuery);
+    activityQuery.range.mockReturnValue(activityQuery);
+    activityQuery.in.mockReturnValue(activityQuery);
+
+    const select = vi.fn().mockReturnValue(activityQuery);
+    from.mockReturnValue({ select });
+
+    await expect(
+      service.getFinancialActivity({
+        coupleSpaceId: 'couple-space-1',
+        startDate: '2026-10-01',
+        endDate: '2026-10-31',
+        creatorId: 'user-1',
+        transactionType: 'expense',
+        categoryIds: ['category-1', 'category-2'],
+        subcategoryId: 'subcategory-1',
+        isSmallExpense: true,
+        page: 2,
+        pageSize: 20,
+      }),
+    ).resolves.toEqual({ items: [], totalCount: 43 });
+
+    expect(activityQuery.eq).toHaveBeenCalledWith('created_by', 'user-1');
+    expect(activityQuery.eq).toHaveBeenCalledWith('transaction_type', 'expense');
+    expect(activityQuery.eq).toHaveBeenCalledWith('subcategory_id', 'subcategory-1');
+    expect(activityQuery.eq).toHaveBeenCalledWith('is_small_expense', true);
+    expect(activityQuery.in).toHaveBeenCalledWith('category_id', ['category-1', 'category-2']);
+    expect(activityQuery.range).toHaveBeenCalledWith(20, 39);
   });
 
   it('should retrieve and map the financial activity summary', async () => {
@@ -279,6 +351,10 @@ describe('FinancialService', () => {
         startDate: '2026-11-01',
         endDate: '2026-11-30',
         creatorId: 'user-1',
+        transactionType: 'expense',
+        categoryIds: ['category-1', 'category-2'],
+        subcategoryId: 'subcategory-1',
+        isSmallExpense: true,
       }),
     ).resolves.toEqual({
       incomeTotal: '4000000.0000',
@@ -292,6 +368,10 @@ describe('FinancialService', () => {
       p_start_date: '2026-11-01',
       p_end_date: '2026-11-30',
       p_creator_id: 'user-1',
+      p_transaction_type: 'expense',
+      p_category_ids: ['category-1', 'category-2'],
+      p_subcategory_id: 'subcategory-1',
+      p_is_small_expense: true,
     });
     expect(single).toHaveBeenCalledTimes(1);
   });
