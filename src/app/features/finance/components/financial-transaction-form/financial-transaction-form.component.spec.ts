@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FinancialCategory } from '../../models/financial-category.model';
+import { FinancialTransaction } from '../../models/financial-transaction.model';
 import { FinancialService } from '../../services/financial.service';
 import { FinancialTransactionFormComponent } from './financial-transaction-form.component';
 
@@ -7,11 +8,13 @@ describe('FinancialTransactionFormComponent', () => {
   const getCategories = vi.fn();
   const getSubcategories = vi.fn();
   const createTransaction = vi.fn();
+  const updateTransaction = vi.fn();
 
   const financialServiceMock = {
     getCategories,
     getSubcategories,
     createTransaction,
+    updateTransaction,
   };
 
   const expenseCategories: FinancialCategory[] = [
@@ -147,6 +150,62 @@ describe('FinancialTransactionFormComponent', () => {
       expenseScope: null,
       isSmallExpense: false,
     });
+  });
+
+  it('should populate and save the supplied transaction in editing mode', async () => {
+    const transactionToEdit: FinancialTransaction = {
+      id: 'transaction-1',
+      coupleSpaceId: 'couple-space-1',
+      createdBy: 'user-1',
+      transactionType: 'expense',
+      categoryId: 'expense-category-1',
+      subcategoryId: null,
+      amount: '25000.0000',
+      currencyCode: 'COP',
+      effectiveDate: '2026-11-01',
+      concept: 'Mercado semanal',
+      expenseScope: 'shared',
+      isSmallExpense: true,
+      createdAt: '2026-11-01T12:00:00.000Z',
+      updatedAt: '2026-11-01T12:00:00.000Z',
+    };
+    const savedTransaction = { ...transactionToEdit, amount: '30000.0000' };
+    const emittedTransactions: FinancialTransaction[] = [];
+
+    fixture.componentRef.setInput('transactionToEdit', transactionToEdit);
+    updateTransaction.mockResolvedValue(savedTransaction);
+    component.transactionSaved.subscribe((transaction) => emittedTransactions.push(transaction));
+
+    await initializeComponent();
+
+    expect(component.isEditing()).toBe(true);
+    expect(component.transactionForm.getRawValue()).toEqual({
+      transactionType: 'expense',
+      categoryId: 'expense-category-1',
+      subcategoryId: null,
+      amount: 25000,
+      effectiveDate: '2026-11-01',
+      concept: 'Mercado semanal',
+      expenseScope: 'shared',
+      isSmallExpense: true,
+    });
+
+    component.transactionForm.controls.amount.setValue(30000);
+    await component.onSave();
+
+    expect(updateTransaction).toHaveBeenCalledWith('transaction-1', {
+      transactionType: 'expense',
+      categoryId: 'expense-category-1',
+      subcategoryId: null,
+      amount: 30000,
+      effectiveDate: '2026-11-01',
+      concept: 'Mercado semanal',
+      expenseScope: 'shared',
+      isSmallExpense: true,
+    });
+    expect(createTransaction).not.toHaveBeenCalled();
+    expect(component.successMessage()).toBeNull();
+    expect(emittedTransactions).toEqual([savedTransaction]);
   });
 
   it('should show a save error when the transaction cannot be created', async () => {

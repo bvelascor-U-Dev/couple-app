@@ -5,7 +5,7 @@ import { FinancialFiltersComponent } from './financial-filters.component';
 
 describe('FinancialFiltersComponent', () => {
   const initialFilters: FinancialFilterSelection = {
-    memberView: 'both',
+    memberView: 'me',
     categoryIds: ['expense-category'],
     isSmallExpense: true,
     dateRange: {
@@ -153,7 +153,7 @@ describe('FinancialFiltersComponent', () => {
     component.onClearAllFilters();
 
     expect(emittedFilters).toHaveBeenCalledWith({
-      memberView: 'both',
+      memberView: 'me',
       transactionType: undefined,
       categoryIds: undefined,
       isSmallExpense: undefined,
