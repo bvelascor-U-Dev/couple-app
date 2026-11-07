@@ -62,9 +62,9 @@ export class FinancialFiltersComponent {
     label: string;
     initials: string;
   }> = [
-    { value: 'both', label: 'Ambos', initials: 'A B' },
     { value: 'me', label: 'Mis movimientos', initials: 'Yo' },
     { value: 'partner', label: 'Movimientos de pareja', initials: 'P' },
+    { value: 'both', label: 'Ambos', initials: 'A B' },
   ];
 
   private readonly categoryIcons: Readonly<Record<string, LucideIcon>> = {
@@ -127,7 +127,7 @@ export class FinancialFiltersComponent {
     const currentMonthRange = this.createMonthDateRange(new Date());
 
     return (
-      filters.memberView !== 'both' ||
+      filters.memberView !== 'me' ||
       filters.transactionType !== undefined ||
       filters.categoryIds !== undefined ||
       filters.isSmallExpense !== undefined ||
@@ -341,7 +341,7 @@ export class FinancialFiltersComponent {
     this.dateRangeError.set(null);
 
     this.emitFilters({
-      memberView: 'both',
+      memberView: 'me',
       transactionType: undefined,
       categoryIds: undefined,
       isSmallExpense: undefined,

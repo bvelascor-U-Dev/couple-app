@@ -6,12 +6,12 @@
     <details #memberFilter class="dropdown">
       <summary
         class="btn min-h-11 rounded-xl px-4 shadow-none transition-colors hover:border-primary/50 hover:bg-primary/8 hover:text-primary"
-        [class.border-base-300]="filters().memberView === 'both'"
-        [class.bg-base-100]="filters().memberView === 'both'"
-        [class.text-base-content/80]="filters().memberView === 'both'"
-        [class.border-primary/50]="filters().memberView !== 'both'"
-        [class.bg-primary/8]="filters().memberView !== 'both'"
-        [class.text-primary]="filters().memberView !== 'both'"
+        [class.border-base-300]="filters().memberView === 'me'"
+        [class.bg-base-100]="filters().memberView === 'me'"
+        [class.text-base-content/80]="filters().memberView === 'me'"
+        [class.border-primary/50]="filters().memberView !== 'me'"
+        [class.bg-primary/8]="filters().memberView !== 'me'"
+        [class.text-primary]="filters().memberView !== 'me'"
       >
         <svg
           class="size-5"
