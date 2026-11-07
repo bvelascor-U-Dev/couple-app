@@ -1,9 +1,22 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  input,
+  OnInit,
+  output,
+  signal,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FinancialService } from '../../services/financial.service';
 import { FinancialCategory } from '../../models/financial-category.model';
 import { FinancialSubcategory } from '../../models/financial-subcategory.model';
-import { TransactionType, ExpenseScope } from '../../models/financial-transaction.model';
+import {
+  TransactionType,
+  ExpenseScope,
+  FinancialTransaction,
+} from '../../models/financial-transaction.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FinancialTransactionInput } from '../../models/financial-transaction.input';
 import { CurrencyAmountInputComponent } from '../currency-amount-input/currency-amount-input.component';
@@ -28,6 +41,9 @@ export class FinancialTransactionFormComponent implements OnInit {
   public readonly subcategoryErrorMessage = signal<string | null>(null);
   public readonly saveErrorMessage = signal<string | null>(null);
   public readonly successMessage = signal<string | null>(null);
+  public readonly transactionToEdit = input<FinancialTransaction | null>(null);
+  public readonly isEditing = computed(() => this.transactionToEdit() !== null);
+  readonly transactionSaved = output<FinancialTransaction>();
 
   readonly transactionForm = new FormGroup({
     transactionType: new FormControl<TransactionType>('expense', {
@@ -80,6 +96,12 @@ export class FinancialTransactionFormComponent implements OnInit {
         void this.loadSubcategories(categoryId);
       });
 
+    const transactionToEdit = this.transactionToEdit();
+
+    if (transactionToEdit) {
+      void this.populateFormForEditing();
+      return;
+    }
     void this.loadCategories(this.transactionForm.controls.transactionType.value);
   }
 
@@ -141,16 +163,30 @@ export class FinancialTransactionFormComponent implements OnInit {
       isSmallExpense: transactionType === 'expense' ? isSmallExpense : false,
     };
 
+    const transactionToEdit = this.transactionToEdit();
+
     try {
-      await this.financialService.createTransaction(input);
-      this.showSuccessMessage('El movimiento se registró correctamente.');
-      this.resetFieldsForNextTransaction();
+      let savedTransaction: FinancialTransaction;
+
+      if (transactionToEdit) {
+        savedTransaction = await this.financialService.updateTransaction(
+          transactionToEdit.id,
+          input,
+        );
+      } else {
+        savedTransaction = await this.financialService.createTransaction(input);
+
+        this.showSuccessMessage('El movimiento se registró correctamente.');
+        this.resetFieldsForNextTransaction();
+      }
+
+      this.transactionSaved.emit(savedTransaction);
     } catch {
       this.saveErrorMessage.set('No fue posible guardar el movimiento. Inténtalo nuevamente.');
     } finally {
       this.isSaving.set(false);
     }
-  };
+  }
 
   private resetFieldsForNextTransaction(): void {
     this.transactionForm.controls.categoryId.reset();
@@ -158,7 +194,7 @@ export class FinancialTransactionFormComponent implements OnInit {
     this.transactionForm.controls.concept.reset();
     this.transactionForm.controls.isSmallExpense.reset();
     this.transactionForm.controls.effectiveDate.reset();
-  };
+  }
 
   private async loadSubcategories(categoryId: string): Promise<void> {
     this.isLoadingSubcategories.set(true);
@@ -188,12 +224,41 @@ export class FinancialTransactionFormComponent implements OnInit {
     const day = String(date.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
-  };
+  }
   private showSuccessMessage(message: string): void {
     this.successMessage.set(message);
 
     window.setTimeout(() => {
       this.successMessage.set(null);
     }, 2000);
-  };
+  }
+
+  private async populateFormForEditing(): Promise<void> {
+    const transaction = this.transactionToEdit();
+
+    if (!transaction) {
+      return;
+    }
+
+    this.transactionForm.patchValue(
+      {
+        transactionType: transaction.transactionType,
+        categoryId: transaction.categoryId,
+        subcategoryId: transaction.subcategoryId,
+        amount: Number(transaction.amount),
+        effectiveDate: transaction.effectiveDate,
+        concept: transaction.concept ?? '',
+        expenseScope: transaction.expenseScope ?? 'personal',
+        isSmallExpense: transaction.isSmallExpense,
+      },
+      {
+        emitEvent: false,
+      },
+    );
+
+    await Promise.all([
+      this.loadCategories(transaction.transactionType),
+      this.loadSubcategories(transaction.categoryId),
+    ]);
+  }
 }

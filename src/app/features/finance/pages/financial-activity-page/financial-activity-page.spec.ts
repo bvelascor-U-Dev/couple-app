@@ -16,6 +16,7 @@ describe('FinancialActivityPage', () => {
   const getFinancialActivity = vi.fn();
   const getFinancialActivitySummary = vi.fn();
   const getCategories = vi.fn();
+  const deleteTransaction = vi.fn();
   const requireAuthenticatedUserId = vi.fn();
 
   const coupleSpaceServiceMock = {
@@ -26,6 +27,7 @@ describe('FinancialActivityPage', () => {
     getFinancialActivity,
     getFinancialActivitySummary,
     getCategories,
+    deleteTransaction,
   };
 
   const authServiceMock = {
@@ -141,6 +143,7 @@ describe('FinancialActivityPage', () => {
     expect(getFinancialActivity).toHaveBeenCalledWith(
       expect.objectContaining({
         coupleSpaceId: 'couple-space-1',
+        creatorId: 'user-1',
         page: 1,
         pageSize: 20,
       }),
@@ -257,5 +260,32 @@ describe('FinancialActivityPage', () => {
 
     content = (fixture.nativeElement as HTMLElement).textContent;
     expect(content).toContain('Aún no hay movimientos en este período o filtros seleccionados.');
+  });
+
+  it('should keep partner-owned transactions read-only', async () => {
+    await initializeComponent();
+
+    component.onEditTransaction(activityItems[0]);
+    component.onRequestDelete(activityItems[0]);
+
+    expect(component.selectedTransactionForEditing()).toBeNull();
+    expect(component.selectedTransactionForDeletion()).toBeNull();
+  });
+
+  it('should delete an owned transaction, refresh activity, and show a success message', async () => {
+    const ownedTransaction = { ...activityItems[0], createdBy: 'user-1' };
+    deleteTransaction.mockResolvedValue(undefined);
+    await initializeComponent();
+    getFinancialActivity.mockClear();
+    getFinancialActivitySummary.mockClear();
+
+    component.onRequestDelete(ownedTransaction);
+    await component.confirmDeleteTransaction();
+
+    expect(deleteTransaction).toHaveBeenCalledWith('transaction-1');
+    expect(component.selectedTransactionForDeletion()).toBeNull();
+    expect(component.actionSuccessMessage()).toBe('El movimiento se eliminó correctamente.');
+    expect(getFinancialActivity).toHaveBeenCalledTimes(1);
+    expect(getFinancialActivitySummary).toHaveBeenCalledTimes(1);
   });
 });

@@ -12,8 +12,13 @@
   <div class="mx-auto max-w-3xl">
     <header class="mb-6">
       <p class="text-sm font-semibold text-[#7c3b70]">Finanzas</p>
-      <h1 class="mt-1 text-3xl font-bold tracking-tight text-[#1E293B]">Registrar movimiento</h1>
-      <p class="mt-2 text-[#64748B]">Añade tus ingresos y gastos de forma rápida.</p>
+      @if(isEditing()){
+        <h1 class="mt-1 text-3xl font-bold tracking-tight text-[#1E293B]">Editar movimiento</h1>
+        <p class="mt-2 text-[#64748B]">Actualiza los datos de este movimiento.</p>
+      } @else {
+        <h1 class="mt-1 text-3xl font-bold tracking-tight text-[#1E293B]">Registrar movimiento</h1>
+        <p class="mt-2 text-[#64748B]">Añade tus ingresos y gastos de forma rápida.</p>
+      }
     </header>
 
     <form
@@ -277,7 +282,10 @@
             @if (isSaving()) {
               <span class="loading loading-spinner loading-sm"></span>
               <span>Registrando movimiento...</span>
-            } @else {
+            } @else if (isEditing()) {
+              <span>Guardar cambios</span>
+            } 
+            @else {
               <span>Registrar movimiento</span>
             }
           </button>

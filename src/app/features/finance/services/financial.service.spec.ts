@@ -22,6 +22,7 @@ describe('FinancialService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    requireAuthenticatedUserId.mockReturnValue('user-1');
 
     TestBed.configureTestingModule({
       providers: [
@@ -195,6 +196,82 @@ describe('FinancialService', () => {
     from.mockReturnValue({ select });
 
     await expect(service.getCategories('income')).rejects.toBe(databaseError);
+  });
+
+  it('should update only the authenticated creator transaction and map the result', async () => {
+    const transactionRow = {
+      id: 'transaction-1',
+      couple_space_id: 'couple-space-1',
+      created_by: 'user-1',
+      transaction_type: 'expense',
+      category_id: 'category-2',
+      subcategory_id: null,
+      amount: '30000.0000',
+      currency_code: 'COP',
+      effective_date: '2026-11-06',
+      concept: 'Mercado actualizado',
+      expense_scope: 'shared',
+      is_small_expense: false,
+      created_at: '2026-11-01T12:00:00.000Z',
+      updated_at: '2026-11-06T12:00:00.000Z',
+    };
+    const single = vi.fn().mockResolvedValue({ data: transactionRow, error: null });
+    const select = vi.fn().mockReturnValue({ single });
+    const eqById = vi.fn().mockReturnValue({ select });
+    const eqByCreator = vi.fn().mockReturnValue({ eq: eqById });
+    const update = vi.fn().mockReturnValue({ eq: eqByCreator });
+
+    from.mockReturnValue({ update });
+
+    await expect(
+      service.updateTransaction('transaction-1', {
+        transactionType: 'expense',
+        categoryId: 'category-2',
+        subcategoryId: null,
+        amount: 30000,
+        effectiveDate: '2026-11-06',
+        concept: 'Mercado actualizado',
+        expenseScope: 'shared',
+        isSmallExpense: false,
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        id: 'transaction-1',
+        categoryId: 'category-2',
+        amount: '30000.0000',
+        updatedAt: '2026-11-06T12:00:00.000Z',
+      }),
+    );
+
+    expect(update).toHaveBeenCalledWith({
+      transaction_type: 'expense',
+      category_id: 'category-2',
+      subcategory_id: null,
+      amount: 30000,
+      effective_date: '2026-11-06',
+      concept: 'Mercado actualizado',
+      expense_scope: 'shared',
+      is_small_expense: false,
+    });
+    expect(eqByCreator).toHaveBeenCalledWith('created_by', 'user-1');
+    expect(eqById).toHaveBeenCalledWith('id', 'transaction-1');
+  });
+
+  it('should delete only the authenticated creator transaction', async () => {
+    const single = vi.fn().mockResolvedValue({ data: { id: 'transaction-1' }, error: null });
+    const select = vi.fn().mockReturnValue({ single });
+    const eqByCreator = vi.fn().mockReturnValue({ select });
+    const eqById = vi.fn().mockReturnValue({ eq: eqByCreator });
+    const remove = vi.fn().mockReturnValue({ eq: eqById });
+
+    from.mockReturnValue({ delete: remove });
+
+    await expect(service.deleteTransaction('transaction-1')).resolves.toBeUndefined();
+
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(eqById).toHaveBeenCalledWith('id', 'transaction-1');
+    expect(eqByCreator).toHaveBeenCalledWith('created_by', 'user-1');
+    expect(select).toHaveBeenCalledWith('id');
   });
 
   it('should retrieve financial activity for the requested member and map related names', async () => {

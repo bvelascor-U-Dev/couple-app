@@ -282,4 +282,55 @@ export class FinancialService {
       balance: financialSummary.balance
      }
   }
+
+  public async updateTransaction(transactionId: string, transactionInput: FinancialTransactionInput): Promise<FinancialTransaction>{
+    const userId = this.authService.requireAuthenticatedUserId();
+
+    const {data,error} = await this.supabase
+      .from('financial_transactions')
+      .update({transaction_type: transactionInput.transactionType,
+        category_id: transactionInput.categoryId,
+        subcategory_id: transactionInput.subcategoryId ?? null,
+        amount: transactionInput.amount,
+        effective_date: transactionInput.effectiveDate,
+        concept: transactionInput.concept ?? null,
+        expense_scope: transactionInput.expenseScope ?? null,
+        is_small_expense: transactionInput.isSmallExpense ?? false,})
+      .eq('created_by',userId)
+      .eq('id',transactionId)
+      .select('id,couple_space_id,created_by,transaction_type,category_id,subcategory_id,amount,currency_code,effective_date,concept,expense_scope,is_small_expense,created_at,updated_at',)
+      .single()
+
+    if(error){
+      throw error
+    }
+    if (!data) {
+      throw new Error('Transaction update did not return a record.');
+    }
+    return this.mapFinancialTransaction(data as FinancialTransactionRow)      
+  }
+
+  public async deleteTransaction(transactionId: string): Promise<void> {
+    const userId = this.authService.requireAuthenticatedUserId();
+
+    if (!transactionId.trim()) {
+      throw new Error('A transaction identifier is required.');
+    }
+
+    const { data, error } = await this.supabase
+      .from('financial_transactions')
+      .delete()
+      .eq('id', transactionId)
+      .eq('created_by', userId)
+      .select('id')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Transaction deletion did not return a record.');
+    }
+  }
 }

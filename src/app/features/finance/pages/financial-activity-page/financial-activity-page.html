@@ -1,4 +1,11 @@
 <section class="mx-auto max-w-6xl space-y-7 pb-8">
+  @if (actionSuccessMessage()) {
+    <div class="toast toast-top toast-center z-50">
+      <div class="alert alert-success shadow-lg" role="status">
+        <span>{{ actionSuccessMessage() }}</span>
+      </div>
+    </div>
+  }
   <header>
     <h2 class="text-xl font-bold tracking-tight text-base-content lg:text-2xl">
       Actividad financiera
@@ -181,7 +188,9 @@
             movimiento registrado este mes.
           </p>
         } @else {
-          <p class="mt-1 text-sm text-base-content/60">No hay movimientos registrados este mes o con los filtros seleccionados.</p>
+          <p class="mt-1 text-sm text-base-content/60">
+            No hay movimientos registrados este mes o con los filtros seleccionados.
+          </p>
         }
       </header>
 
@@ -323,21 +332,103 @@
                   </p>
                 </div>
 
-                @if (item.transactionType; as transactionType) {
-                  <p
-                    class="shrink-0 text-right text-lg font-bold"
-                    [class.text-success]="transactionType === 'income'"
-                    [class.text-error]="transactionType === 'expense'"
-                  >
-                    @if (item.transactionType === 'income') {
-                      <span>+</span>
-                    } @else {
-                      <span>-</span>
-                    }
-                    <span>$</span>
-                    {{ item.amount | currency: 'COP' : '' : '1.0-0' : 'es-CO' }}
-                  </p>
-                }
+                <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+                  @if (item.transactionType; as transactionType) {
+                    <p
+                      class="text-right text-lg font-bold"
+                      [class.text-success]="transactionType === 'income'"
+                      [class.text-error]="transactionType === 'expense'"
+                    >
+                      @if (item.transactionType === 'income') {
+                        <span>+</span>
+                      } @else {
+                        <span>-</span>
+                      }
+                      <span>$</span>
+                      {{ item.amount | currency: 'COP' : '' : '1.0-0' : 'es-CO' }}
+                    </p>
+                  }
+
+                  @if (canManageTransaction(item)) {
+                    <details
+                      #transactionActions
+                      data-transaction-actions
+                      class="dropdown dropdown-end"
+                    >
+                      <summary
+                        class="btn btn-ghost btn-sm btn-square list-none rounded-xl text-base-content/60 hover:bg-primary/10 hover:text-primary [&::-webkit-details-marker]:hidden"
+                        aria-label="Acciones para este movimiento"
+                      >
+                        <svg
+                          class="size-5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <circle cx="12" cy="5" r="1" />
+                          <circle cx="12" cy="12" r="1" />
+                          <circle cx="12" cy="19" r="1" />
+                        </svg>
+                      </summary>
+
+                      <ul
+                        class="menu dropdown-content z-20 mt-2 w-52 rounded-xl border border-base-300 bg-base-100 p-2 shadow-xl"
+                      >
+                        <li>
+                          <button
+                            type="button"
+                            (click)="onEditTransaction(item); transactionActions.open = false"
+                          >
+                            <svg
+                              class="size-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                            </svg>
+                            Editar movimiento
+                          </button>
+                        </li>
+
+                        <li>
+                          <button
+                            class="text-error hover:bg-error/10"
+                            type="button"
+                            (click)="onRequestDelete(item); transactionActions.open = false"
+                          >
+                            <svg
+                              class="size-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M3 6h18" />
+                              <path d="M8 6V4h8v2" />
+                              <path d="M19 6l-1 14H6L5 6" />
+                              <path d="M10 11v5" />
+                              <path d="M14 11v5" />
+                            </svg>
+                            Eliminar
+                          </button>
+                        </li>
+                      </ul>
+                    </details>
+                  }
+                </div>
               </article>
             }
           </div>
@@ -375,5 +466,116 @@
         </footer>
       }
     </section>
+  }
+  @if (selectedTransactionForEditing(); as transaction) {
+    <div class="modal modal-open" role="dialog" aria-modal="true" aria-label="Editar movimiento">
+      <div class="modal-box max-w-3xl p-0">
+        <button
+          class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4"
+          type="button"
+          aria-label="Cerrar edición"
+          (click)="onCloseEdit()"
+        >
+          ✕
+        </button>
+
+        <div class="p-6 sm:p-8">
+          <app-financial-transaction-form
+            [transactionToEdit]="transaction"
+            (transactionSaved)="onTransactionSaved()"
+          />
+        </div>
+      </div>
+
+      <button
+        class="modal-backdrop"
+        type="button"
+        aria-label="Cerrar edición"
+        (click)="onCloseEdit()"
+      >
+        Cerrar
+      </button>
+    </div>
+  }
+  @if (selectedTransactionForDeletion(); as transaction) {
+    <div
+      class="modal modal-open"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="delete-transaction-title"
+    >
+      <div class="modal-box max-w-md">
+        <button
+          class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4"
+          type="button"
+          aria-label="Cerrar confirmación"
+          [disabled]="isDeleting()"
+          (click)="onCloseDelete()"
+        >
+          ✕
+        </button>
+
+        <div class="pr-10">
+          <p class="text-sm font-semibold text-error">Eliminar movimiento</p>
+
+          <h2 id="delete-transaction-title" class="mt-2 text-xl font-bold">
+            ¿Eliminar este movimiento?
+          </h2>
+
+          <p class="mt-3 text-sm text-base-content/70">
+            Esta acción no se puede deshacer. Se eliminará el movimiento de
+            <span class="font-semibold text-base-content">
+              {{ transaction.categoryName }}
+            </span>
+            por
+            <span class="font-semibold text-base-content">
+              {{
+                transaction.amount | currency: 'COP' : 'symbol-narrow' : '1.0-0' : 'es-CO'
+              }} </span
+            >.
+          </p>
+        </div>
+
+        @if (deleteErrorMessage()) {
+          <div class="alert alert-error mt-5 text-sm" role="alert">
+            <span>{{ deleteErrorMessage() }}</span>
+          </div>
+        }
+
+        <div class="modal-action mt-7">
+          <button
+            class="btn btn-ghost"
+            type="button"
+            [disabled]="isDeleting()"
+            (click)="onCloseDelete()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            class="btn btn-error"
+            type="button"
+            [disabled]="isDeleting()"
+            (click)="confirmDeleteTransaction()"
+          >
+            @if (isDeleting()) {
+              Eliminando...
+            } @else {
+              Eliminar movimiento
+            }
+          </button>
+        </div>
+      </div>
+
+      <button
+        class="modal-backdrop"
+        type="button"
+        aria-label="Cerrar confirmación"
+        [disabled]="isDeleting()"
+        (click)="onCloseDelete()"
+      >
+        Cerrar
+      </button>
+    </div>
   }
 </section>

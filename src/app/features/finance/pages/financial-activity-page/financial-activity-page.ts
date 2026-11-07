@@ -1,4 +1,12 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  HostListener,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { FinancialService } from '../../services/financial.service';
 import { CoupleSpaceService } from '../../../couple-space/services/couple-space.service';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -11,14 +19,17 @@ import { FinancialActivityFilters } from '../../models/financial-activity-filter
 import { FinancialCategory } from '../../models/financial-category.model';
 import { FinancialFilterSelection } from '../../models/financial-filter-selection.model';
 import { FinancialFiltersComponent } from '../../components/financial-filters/financial-filters.component';
+import { FinancialTransaction } from '../../models/financial-transaction.model';
+import { FinancialTransactionFormComponent } from '../../components/financial-transaction-form/financial-transaction-form.component';
 
 @Component({
   selector: 'app-financial-activity-page',
-  imports: [CurrencyPipe, FinancialFiltersComponent],
+  imports: [CurrencyPipe, FinancialFiltersComponent, FinancialTransactionFormComponent],
   templateUrl: './financial-activity-page.html',
 })
 export class FinancialActivityPage implements OnInit {
   private readonly pageSize = 20;
+  private readonly hostElement = inject(ElementRef<HTMLElement>);
 
   private readonly financialService = inject(FinancialService);
   private readonly coupleSpaceService = inject(CoupleSpaceService);
@@ -38,6 +49,13 @@ export class FinancialActivityPage implements OnInit {
   readonly categories = signal<FinancialCategory[]>([]);
   readonly isLoadingCategories = signal(false);
   readonly categoryErrorMessage = signal<string | null>(null);
+  readonly selectedTransactionForEditing = signal<FinancialTransaction | null>(null);
+  readonly selectedTransactionForDeletion = signal<FinancialActivityItem | null>(null);
+  readonly deleteErrorMessage = signal<string | null>(null);
+  readonly isDeleting = signal<boolean>(false);
+  readonly actionSuccessMessage = signal<string | null>(null);
+
+  private actionSuccessMessageTimeout: ReturnType<typeof setTimeout> | null = null;
 
   public async ngOnInit(): Promise<void> {
     await Promise.all([this.loadActivity(), this.loadCategories()]);
@@ -112,7 +130,7 @@ export class FinancialActivityPage implements OnInit {
 
   private createInitialFilters(): FinancialFilterSelection {
     return {
-      memberView: 'both',
+      memberView: 'me',
       dateRange: this.createCurrentMonthDateRange(),
     };
   }
@@ -211,5 +229,93 @@ export class FinancialActivityPage implements OnInit {
       startDate,
       endDate,
     };
+  }
+
+  public canManageTransaction(transaction: FinancialActivityItem): boolean {
+    return transaction.createdBy === this.currentUserId();
+  }
+
+  public onEditTransaction(transaction: FinancialActivityItem): void {
+    if (!this.canManageTransaction(transaction)) {
+      return;
+    }
+
+    this.selectedTransactionForEditing.set(transaction);
+  }
+
+  public onCloseEdit(): void {
+    this.selectedTransactionForEditing.set(null);
+  }
+
+  public async onTransactionSaved(): Promise<void> {
+    this.onCloseEdit();
+    await this.loadActivity();
+    this.showActionSuccessMessage('El movimiento se actualizó correctamente.');
+  }
+
+  public onRequestDelete(transaction: FinancialActivityItem): void {
+    if (!this.canManageTransaction(transaction)) {
+      return;
+    }
+
+    this.selectedTransactionForDeletion.set(transaction);
+  }
+
+  public onCloseDelete(): void {
+    this.selectedTransactionForDeletion.set(null);
+  }
+
+  public async confirmDeleteTransaction(): Promise<void> {
+    const id = this.selectedTransactionForDeletion()?.id;
+    if (!id) {
+      return;
+    }
+
+    this.deleteErrorMessage.set(null);
+    this.isDeleting.set(true);
+
+    try {
+      await this.financialService.deleteTransaction(id);
+
+      this.onCloseDelete();
+      await this.loadActivity();
+      this.showActionSuccessMessage('El movimiento se eliminó correctamente.');
+    } catch {
+      this.deleteErrorMessage.set('No fue posible eliminar el movimiento. Inténtalo nuevamente.');
+    } finally {
+      this.isDeleting.set(false);
+    }
+  }
+
+  private showActionSuccessMessage(message: string): void {
+    if (this.actionSuccessMessageTimeout) {
+      clearTimeout(this.actionSuccessMessageTimeout);
+    }
+
+    this.actionSuccessMessage.set(message);
+
+    this.actionSuccessMessageTimeout = setTimeout(() => {
+      this.actionSuccessMessage.set(null);
+      this.actionSuccessMessageTimeout = null;
+    }, 3000);
+  }
+
+  @HostListener('document:click', ['$event'])
+  public closeTransactionActionMenusOnOutsideClick(event: MouseEvent): void {
+    const target = event.target;
+
+    if (!(target instanceof Node)) {
+      return;
+    }
+
+    const openMenus = this.hostElement.nativeElement.querySelectorAll(
+      'details[data-transaction-actions][open]',
+    ) as NodeListOf<HTMLDetailsElement>;
+
+    openMenus.forEach((menu) => {
+      if (!menu.contains(target)) {
+        menu.open = false;
+      }
+    });
   }
 }
